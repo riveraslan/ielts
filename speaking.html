@@ -352,7 +352,7 @@ function showPQuestion() {
     shuffle(shuf); window[shufKey]=shuf; window[idxKey]=0; idx=0;
   }
   var item = pool[shuf[idx]];
-  document.getElementById('pCardTitle').textContent = (pTab==='p1'?'💬 Part 1 · ':'📋 Part 2 · ':'🎯 Part 3 · ':'') + (item.cat||'');
+  document.getElementById('pCardTitle').textContent = (pTab==='p1'?'💬 Part 1 · ':pTab==='p2'?'📋 Part 2 · ':'🎯 Part 3 · ') + (item.cat||'');
   document.getElementById('pCardQ').textContent = item.q || item.topic || '';
   document.getElementById('pCardHint').style.display = item.hint ? 'block':'none';
   document.getElementById('pCardHint').textContent = item.hint || '';
