@@ -157,7 +157,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
     <div class="card-question" id="pCardQ"></div>
     <div class="card-hint" id="pCardHint" style="display:none"></div>
     <div class="card-bullets" id="pCardBullets" style="display:none"></div>
-    <textarea class="notes-area" id="pNotes" style="display:none" placeholder="准备笔记…"></textarea>
+    <textarea class="notes-area" id="pNotes" placeholder="📝 打字做笔记，准备你的回答…"></textarea>
     <div class="timer-block" id="pTimerBlock" style="display:none">
       <div class="timer-label" id="pTimerLabel">准备时间</div>
       <div class="timer-num" id="pTimerNum">1:00</div>
@@ -370,8 +370,8 @@ function showPQuestion() {
     for(var b=0;b<item.bullets.length;b++) bhtml += '• '+item.bullets[b]+'<br>';
     document.getElementById('pCardBullets').innerHTML = bhtml;
   }
-  document.getElementById('pNotes').style.display = pTab==='p2' ? 'block':'none';
   document.getElementById('pNotes').value = '';
+  document.getElementById('pNotes').placeholder = pTab==='p2' ? '📝 Part 2 准备笔记…' : '📝 打字做笔记，准备你的回答…';
   document.getElementById('pTimerBlock').style.display = 'none';
   document.getElementById('pCardSample').textContent = item.sample || '';
   document.getElementById('pCardAnswer').classList.remove('show');
