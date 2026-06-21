@@ -3,448 +3,525 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IELTS Speaking Mock Test</title>
+<title>IELTS Speaking · 雅思口语</title>
 <style>
-:root {
-  --bg: #0a0a0f; --surface: #1a1a2e; --accent: #6366f1;
-  --green: #22c55e; --red: #ef4444; --yellow: #eab308;
-  --text: #f1f5f9; --text2: #94a3b8;
-  --radius: 16px;
-}
+:root { --bg:#0f172a; --surface:#1e293b; --surface2:#334155; --text:#e2e8f0; --text2:#94a3b8; --accent:#38bdf8; --accent2:#818cf8; --green:#34d399; --red:#f87171; --yellow:#fbbf24; --radius:12px; --radius-sm:8px; }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000; color: var(--text); height: 100vh; overflow: hidden; user-select: none; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; justify-content:center; }
+.app { width:100%; max-width:680px; padding:20px 16px 40px; }
+.header { text-align:center; padding:24px 0 8px; }
+.header h1 { font-size:28px; font-weight:700; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.header .subtitle { color:var(--text2); font-size:14px; margin-top:4px; }
 
-/* Video call layout */
-.call-screen { width: 100%; height: 100vh; position: relative; background: #0a0a0f; display: flex; flex-direction: column; }
+/* ====== START SCREEN ====== */
+.start-screen { text-align:center; padding:60px 20px; }
+.start-screen h1 { font-size:42px; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.start-screen .sub { color:var(--text2); font-size:16px; margin:8px 0 40px; }
+.mode-cards { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+.mode-card { background:var(--surface); border:2px solid var(--surface2); border-radius:var(--radius); padding:32px 24px; cursor:pointer; width:240px; text-align:center; transition:all .2s; }
+.mode-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.mode-card .icon { font-size:48px; margin-bottom:12px; }
+.mode-card .title { font-size:18px; font-weight:600; margin-bottom:4px; }
+.mode-card .desc { font-size:13px; color:var(--text2); }
 
-/* Examiner - main video */
-.examiner-area { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 70%); overflow: hidden; }
-.examiner-avatar { width: 200px; height: 200px; border-radius: 50%; background: linear-gradient(135deg, #3b3b5c, #1e1e3a); display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 60px rgba(99,102,241,.3); }
-.examiner-face { font-size: 90px; filter: grayscale(20%); }
-.examiner-name { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.7); padding: 4px 16px; border-radius: 20px; font-size: 13px; color: var(--text2); white-space: nowrap; }
-.examiner-avatar.speaking { animation: speakPulse .6s ease-in-out infinite; }
-@keyframes speakPulse { 0%,100% { box-shadow: 0 0 60px rgba(99,102,241,.3); } 50% { box-shadow: 0 0 100px rgba(99,102,241,.6); transform: scale(1.02); } }
+/* ====== PRACTICE MODE ====== */
+.tabs { display:flex; gap:4px; background:var(--surface); border-radius:var(--radius); padding:4px; margin:16px 0; }
+.tab { flex:1; padding:10px 6px; text-align:center; border:none; background:transparent; color:var(--text2); border-radius:var(--radius-sm); cursor:pointer; font-size:13px; font-weight:500; }
+.tab.active { background:var(--surface2); color:var(--text); }
 
-/* Self view */
-.self-view { position: absolute; top: 16px; right: 16px; width: 100px; height: 140px; border-radius: 12px; background: linear-gradient(135deg, #2d2d4a, #1a1a30); border: 2px solid rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; font-size: 40px; z-index: 10; }
-.self-view.recording { border-color: var(--red); animation: recPulse 1s infinite; }
-@keyframes recPulse { 0%,100% { border-color: var(--red); } 50% { border-color: rgba(239,68,68,.3); } }
+.category-bar { display:flex; gap:6px; flex-wrap:wrap; margin:12px 0; }
+.cat-chip { padding:6px 14px; border-radius:20px; font-size:13px; border:1px solid var(--surface2); background:transparent; color:var(--text2); cursor:pointer; }
+.cat-chip.active { background:var(--accent); color:#0f172a; border-color:var(--accent); }
 
-/* Timer */
-.exam-timer { position: absolute; top: 16px; left: 16px; background: rgba(0,0,0,.7); padding: 6px 14px; border-radius: 20px; font-size: 14px; font-variant-numeric: tabular-nums; z-index: 10; }
-.exam-timer.warn { color: var(--yellow); }
-.exam-timer.urgent { color: var(--red); }
+.card { background:var(--surface); border-radius:var(--radius); padding:24px; margin:16px 0; border:1px solid var(--surface2); }
+.card-title { font-size:13px; color:var(--accent); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+.card-question { font-size:20px; font-weight:600; line-height:1.5; margin-bottom:12px; }
+.card-hint { font-size:13px; color:var(--text2); margin-bottom:12px; padding:10px 14px; background:rgba(129,140,248,.08); border-radius:var(--radius-sm); border-left:3px solid var(--accent2); }
+.card-bullets { font-size:14px; color:var(--text2); line-height:1.8; }
+.card-bullets span { color:var(--accent); }
+.card-answer { display:none; padding:16px; background:rgba(52,211,153,.06); border-radius:var(--radius-sm); border:1px solid rgba(52,211,153,.2); margin-top:12px; }
+.card-answer.show { display:block; }
+.card-answer .label { font-size:11px; color:var(--green); margin-bottom:4px; text-transform:uppercase; }
+.card-answer .text { color:var(--text); font-size:14px; line-height:1.7; }
 
-/* Part badge */
-.part-badge { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: var(--accent); padding: 6px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; z-index: 10; }
+.btn { padding:12px 20px; border:none; border-radius:var(--radius-sm); font-size:14px; font-weight:600; cursor:pointer; transition:all .2s; }
+.btn:active { transform:scale(.96); }
+.btn-accent { background:var(--accent); color:#0f172a; }
+.btn-outline { background:transparent; border:1px solid var(--surface2); color:var(--text); }
+.btn-outline:hover { background:var(--surface2); }
+.btn-green { background:#065f46; color:#6ee7b7; }
+.btn-red { background:#7f1d1d; color:#fca5a5; }
 
-/* Caption / Question bar */
-.caption-bar { padding: 16px 20px; background: rgba(0,0,0,.85); border-top: 1px solid rgba(255,255,255,.08); min-height: 80px; }
-.caption-bar .question { font-size: 18px; font-weight: 500; line-height: 1.5; animation: fadeIn .4s ease-out; }
-.caption-bar .hint { font-size: 13px; color: var(--text2); margin-top: 6px; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.actions { display:flex; gap:10px; margin:16px 0; justify-content:center; flex-wrap:wrap; }
+.progress-wrap { margin:8px 0; }
+.progress-label { display:flex; justify-content:space-between; font-size:13px; color:var(--text2); margin-bottom:4px; }
+.progress-bar { height:4px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+.progress-fill { height:100%; background:var(--accent); border-radius:2px; transition:width .3s; }
+.recorder { display:flex; align-items:center; gap:10px; justify-content:center; margin:12px 0; flex-wrap:wrap; }
+.rec-dot { width:10px; height:10px; border-radius:50%; background:var(--red); display:none; }
+.rec-dot.on { display:inline-block; animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+.rec-time { font-size:13px; color:var(--text2); }
+.notes-area { width:100%; min-height:80px; padding:12px; background:var(--bg); border:1px solid var(--surface2); border-radius:var(--radius-sm); color:var(--text); font-size:14px; resize:vertical; margin:8px 0; }
+.timer-block { text-align:center; margin:16px 0; }
+.timer-num { font-size:56px; font-weight:700; }
+.timer-num.warn { color:var(--yellow); }
+.timer-num.urgent { color:var(--red); }
+.timer-label { font-size:13px; color:var(--text2); }
 
-/* Bullets for Part 2 */
-.bullets { font-size: 14px; color: var(--text2); margin-top: 8px; line-height: 1.8; }
-.bullets span { color: var(--accent); margin-right: 4px; }
+/* ====== MOCK EXAM MODE ====== */
+.mock-screen { width:100%; height:100vh; position:relative; background:#000; display:flex; flex-direction:column; }
+.mock-examiner { flex:1; display:flex; align-items:center; justify-content:center; background:radial-gradient(ellipse at center,#1a1a2e 0%,#000 70%); position:relative; }
+.mock-avatar { width:180px; height:180px; border-radius:50%; background:linear-gradient(135deg,#3b3b5c,#1e1e3a); display:flex; align-items:center; justify-content:center; box-shadow:0 0 60px rgba(99,102,241,.3); }
+.mock-avatar .face { font-size:80px; }
+.mock-avatar.speaking { animation:speakPulse .6s ease-in-out infinite; }
+@keyframes speakPulse { 0%,100%{box-shadow:0 0 60px rgba(99,102,241,.3)} 50%{box-shadow:0 0 100px rgba(99,102,241,.6);transform:scale(1.02)} }
+.mock-name { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.7); padding:4px 16px; border-radius:20px; font-size:13px; color:var(--text2); }
+.mock-self { position:absolute; top:16px; right:16px; width:90px; height:120px; border-radius:12px; background:linear-gradient(135deg,#2d2d4a,#1a1a30); border:2px solid rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; font-size:36px; }
+.mock-self.recording { border-color:var(--red); }
+.mock-timer { position:absolute; top:16px; left:16px; background:rgba(0,0,0,.7); padding:6px 14px; border-radius:20px; font-size:14px; z-index:10; }
+.mock-timer.warn { color:var(--yellow); }
+.mock-timer.urgent { color:var(--red); }
+.mock-badge { position:absolute; top:16px; left:50%; transform:translateX(-50%); background:var(--accent); padding:6px 20px; border-radius:20px; font-size:14px; font-weight:600; }
+.mock-caption { padding:16px 20px; background:rgba(0,0,0,.85); border-top:1px solid rgba(255,255,255,.08); min-height:70px; }
+.mock-caption .q { font-size:18px; font-weight:500; line-height:1.5; }
+.mock-caption .hint { font-size:13px; color:var(--text2); margin-top:4px; }
+.mock-bullets { font-size:14px; color:var(--text2); margin-top:8px; line-height:1.8; }
+.mock-bullets span { color:var(--accent); }
+.mock-controls { display:flex; gap:12px; padding:12px 16px; justify-content:center; background:rgba(0,0,0,.9); }
+.mock-btn { width:48px; height:48px; border-radius:50%; border:none; cursor:pointer; font-size:18px; background:var(--surface); color:var(--text); display:flex; align-items:center; justify-content:center; }
+.mock-btn:active { transform:scale(.9); }
+.mock-btn.rec { background:var(--red); color:#fff; width:56px; height:56px; font-size:22px; }
+.mock-btn.rec.on { animation:pulse 1s infinite; }
+.mock-btn.next { background:var(--green); color:#000; }
+.mock-label { font-size:10px; color:var(--text2); text-align:center; }
+.mock-overlay { position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:100; display:none; flex-direction:column; align-items:center; justify-content:center; }
+.mock-overlay.show { display:flex; }
+.mock-overlay .prep-num { font-size:100px; font-weight:700; color:var(--accent); }
+.mock-overlay .prep-lbl { font-size:16px; color:var(--text2); margin-top:8px; }
+.ans-overlay { position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:90; display:none; align-items:center; justify-content:center; padding:24px; }
+.ans-overlay.show { display:flex; }
+.ans-box { background:var(--surface); border-radius:var(--radius); padding:24px; max-width:500px; width:100%; max-height:70vh; overflow-y:auto; }
+.ans-box h3 { color:var(--green); margin-bottom:12px; font-size:13px; }
+.ans-box .text { font-size:15px; line-height:1.7; }
+.ans-close { margin-top:16px; padding:10px 30px; background:var(--accent); color:#fff; border:none; border-radius:20px; cursor:pointer; font-size:15px; }
+.back-btn { position:absolute; top:16px; right:16px; background:rgba(255,255,255,.1); color:var(--text); border:none; padding:6px 14px; border-radius:16px; cursor:pointer; font-size:12px; z-index:20; }
 
-/* Bottom controls */
-.controls { display: flex; gap: 10px; padding: 12px 16px; justify-content: center; background: rgba(0,0,0,.9); border-top: 1px solid rgba(255,255,255,.05); flex-wrap: wrap; }
-.ctrl-btn { width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: all .2s; background: var(--surface); color: var(--text); }
-.ctrl-btn:active { transform: scale(.9); }
-.ctrl-btn.record { background: var(--red); color: #fff; width: 64px; height: 64px; font-size: 24px; }
-.ctrl-btn.record.active { animation: recPulse 1s infinite; }
-.ctrl-btn.skip { background: transparent; border: 2px solid rgba(255,255,255,.15); }
-.ctrl-btn.answer { background: transparent; border: 2px solid var(--accent); color: var(--accent); }
-.ctrl-btn.next { background: var(--green); color: #000; }
-.ctrl-label { font-size: 10px; color: var(--text2); text-align: center; margin-top: 2px; }
-
-/* Prep overlay */
-.prep-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; display: none; }
-.prep-overlay.show { display: flex; }
-.prep-overlay .prep-timer { font-size: 120px; font-weight: 700; color: var(--accent); }
-.prep-overlay .prep-label { font-size: 18px; color: var(--text2); margin-top: 8px; }
-.prep-overlay .prep-topic { font-size: 16px; color: var(--text); margin-top: 20px; max-width: 80%; text-align: center; }
-.prep-overlay .prep-note { font-size: 13px; color: var(--text2); margin-top: 16px; }
-
-/* Done screen */
-.done-screen { position: fixed; inset: 0; background: rgba(0,0,0,.95); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; display: none; }
-.done-screen.show { display: flex; }
-.done-screen h2 { font-size: 36px; color: var(--green); margin-bottom: 8px; }
-.done-screen p { color: var(--text2); font-size: 16px; }
-
-/* Answer reveal */
-.answer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 90; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; display: none; }
-.answer-overlay.show { display: flex; }
-.answer-overlay .answer-box { background: var(--surface); border-radius: var(--radius); padding: 24px; max-width: 500px; width: 100%; max-height: 70vh; overflow-y: auto; }
-.answer-overlay .answer-box h3 { color: var(--green); margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
-.answer-overlay .answer-box .text { color: var(--text); font-size: 15px; line-height: 1.7; }
-.answer-overlay .close-btn { margin-top: 16px; padding: 10px 30px; background: var(--accent); color: #fff; border: none; border-radius: 20px; cursor: pointer; font-size: 15px; }
-
-/* Start screen */
-.start-screen { position: fixed; inset: 0; background: #000; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.start-screen h1 { font-size: 42px; background: linear-gradient(135deg, var(--accent), #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
-.start-screen .sub { color: var(--text2); font-size: 16px; margin-bottom: 40px; }
-.start-screen .start-btn { padding: 16px 48px; background: var(--accent); color: #fff; border: none; border-radius: 30px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all .2s; }
-.start-screen .start-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(99,102,241,.4); }
-.start-screen .mode-select { display: flex; gap: 10px; margin-bottom: 30px; }
-.start-screen .mode-btn { padding: 10px 20px; background: var(--surface); color: var(--text2); border: 1px solid rgba(255,255,255,.1); border-radius: 20px; cursor: pointer; font-size: 14px; }
-.start-screen .mode-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+@media (max-width:480px) {
+  .card-question { font-size:17px; }
+  .mock-avatar { width:140px; height:140px; }
+  .mock-avatar .face { font-size:60px; }
+}
 </style>
 </head>
 <body>
 
-<div class="start-screen" id="startScreen">
-  <h1>🎙️ IELTS Speaking</h1>
-  <div class="sub">模拟真实口语考试</div>
-  <div class="mode-select">
-    <button class="mode-btn active" onclick="selectMode('mock')">🎯 完整模考</button>
-    <button class="mode-btn" onclick="selectMode('practice')">🔄 自由练习</button>
+<!-- ====== START SCREEN ====== -->
+<div id="startScreen" class="app">
+  <div class="start-screen">
+    <h1>🎙️ IELTS Speaking</h1>
+    <div class="sub">选择练习模式</div>
+    <div class="mode-cards">
+      <div class="mode-card" onclick="startMode('practice')">
+        <div class="icon">📝</div>
+        <div class="title">自由练习</div>
+        <div class="desc">Part 1-3 题库 · 按话题筛选<br>录音 · 参考回答 · 自定节奏</div>
+      </div>
+      <div class="mode-card" onclick="startMode('mock')">
+        <div class="icon">🎯</div>
+        <div class="title">完整模考</div>
+        <div class="desc">模拟真实考试 · 外国考官<br>倒计时 · Part 1→2→3 完整流程</div>
+      </div>
+    </div>
   </div>
-  <button class="start-btn" onclick="startTest()">开始考试</button>
 </div>
 
-<div class="call-screen" id="callScreen" style="display:none">
-  <div class="examiner-area" id="examinerArea">
-    <div class="examiner-avatar" id="examinerAvatar">
-      <div class="examiner-face">👨‍🏫</div>
-    </div>
-    <div class="examiner-name">James Mitchell · IELTS Examiner</div>
-
-    <div class="self-view" id="selfView">😊</div>
-    <div class="exam-timer" id="examTimer">00:00</div>
-    <div class="part-badge" id="partBadge">Part 1</div>
+<!-- ====== PRACTICE MODE ====== -->
+<div id="practiceUI" style="display:none" class="app">
+  <div class="header">
+    <h1>📝 自由练习</h1>
+    <div class="subtitle">Part 1-3 · 录音 · 参考回答 <button class="back-btn" onclick="backToStart()" style="position:static;display:inline-block;margin-left:8px">← 返回</button></div>
   </div>
-
-  <div class="caption-bar" id="captionBar">
-    <div class="question" id="captionQ">Good morning. My name is James. Can you tell me your full name, please?</div>
-    <div class="hint" id="captionHint"></div>
-    <div class="bullets" id="captionBullets" style="display:none"></div>
+  <div class="tabs" id="pTabs">
+    <button class="tab active" data-tab="p1">💬 Part 1</button>
+    <button class="tab" data-tab="p2">📋 Part 2</button>
+    <button class="tab" data-tab="p3">🎯 Part 3</button>
   </div>
-
-  <div class="controls" id="controls">
-    <div style="text-align:center">
-      <button class="ctrl-btn skip" onclick="handleSkip()" title="跳过">⏭</button>
-      <div class="ctrl-label">跳过</div>
+  <div class="category-bar" id="pCatBar"></div>
+  <div class="progress-wrap">
+    <div class="progress-label"><span id="pProgLabel">0 / 0</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="pProgFill" style="width:0%"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title" id="pCardTitle"></div>
+    <div class="card-question" id="pCardQ"></div>
+    <div class="card-hint" id="pCardHint" style="display:none"></div>
+    <div class="card-bullets" id="pCardBullets" style="display:none"></div>
+    <textarea class="notes-area" id="pNotes" style="display:none" placeholder="准备笔记…"></textarea>
+    <div class="timer-block" id="pTimerBlock" style="display:none">
+      <div class="timer-label" id="pTimerLabel">准备时间</div>
+      <div class="timer-num" id="pTimerNum">1:00</div>
     </div>
-    <div style="text-align:center">
-      <button class="ctrl-btn record" id="btnRec" onclick="toggleRec()" title="录音">🎤</button>
-      <div class="ctrl-label">录音</div>
-    </div>
-    <div style="text-align:center">
-      <button class="ctrl-btn answer" onclick="showSample()" title="参考回答">💡</button>
-      <div class="ctrl-label">参考</div>
-    </div>
-    <div style="text-align:center">
-      <button class="ctrl-btn next" onclick="handleNext()" title="下一题">→</button>
-      <div class="ctrl-label">下一题</div>
+    <div class="card-answer" id="pCardAnswer">
+      <div class="label">📝 参考回答</div>
+      <div class="text" id="pCardSample"></div>
     </div>
   </div>
-
-  <audio id="recAudio" style="display:none"></audio>
-
-  <!-- Prep overlay for Part 2 -->
-  <div class="prep-overlay" id="prepOverlay">
-    <div class="prep-label">📝 准备时间 · 可以做笔记</div>
-    <div class="prep-timer" id="prepTimer">1:00</div>
-    <div class="prep-topic" id="prepTopic"></div>
-    <div class="prep-note">准备结束后自动开始 2 分钟演讲</div>
+  <div class="recorder">
+    <div class="rec-dot" id="pRecDot"></div>
+    <span class="rec-time" id="pRecTime">00:00</span>
+    <audio id="pRecAudio" controls style="display:none;height:28px"></audio>
   </div>
-
-  <!-- Answer overlay -->
-  <div class="answer-overlay" id="answerOverlay">
-    <div class="answer-box">
-      <h3 id="answerLabel">📝 参考回答</h3>
-      <div class="text" id="answerText"></div>
-    </div>
-    <button class="close-btn" onclick="closeAnswer()">关闭</button>
-  </div>
-
-  <!-- Done screen -->
-  <div class="done-screen" id="doneScreen">
-    <h2>🎉 考试结束</h2>
-    <p id="doneMsg">完整模考已完成</p>
-    <button class="close-btn" style="margin-top:24px" onclick="location.reload()">再来一次</button>
+  <div class="actions">
+    <button class="btn btn-red" onclick="pSkip()">⏭ 跳过</button>
+    <button class="btn btn-outline" id="pBtnRec" onclick="pToggleRec()">🎤 录音</button>
+    <button class="btn btn-outline" onclick="pShowAnswer()">👀 参考</button>
+    <button class="btn btn-accent" onclick="pNext()">✅ 下一题</button>
   </div>
 </div>
+
+<!-- ====== MOCK EXAM MODE ====== -->
+<div id="mockUI" style="display:none" class="mock-screen">
+  <div class="mock-examiner">
+    <div class="mock-avatar" id="mockAvatar"><div class="face">👨‍🏫</div></div>
+    <div class="mock-name">James Mitchell · IELTS Examiner</div>
+    <div class="mock-self" id="mockSelf">😊</div>
+    <div class="mock-timer" id="mockTimer">00:00</div>
+    <div class="mock-badge" id="mockBadge">Part 1</div>
+    <button class="back-btn" onclick="backToStart()">← 退出</button>
+  </div>
+  <div class="mock-caption">
+    <div class="q" id="mockQ"></div>
+    <div class="hint" id="mockHint"></div>
+    <div class="mock-bullets" id="mockBullets" style="display:none"></div>
+  </div>
+  <div class="mock-controls" id="mockControls">
+    <div style="text-align:center"><button class="mock-btn" onclick="mSkip()">⏭</button><div class="mock-label">跳过</div></div>
+    <div style="text-align:center"><button class="mock-btn rec" id="mBtnRec" onclick="mToggleRec()">🎤</button><div class="mock-label">录音</div></div>
+    <div style="text-align:center"><button class="mock-btn" onclick="mShowAns()">💡</button><div class="mock-label">参考</div></div>
+    <div style="text-align:center"><button class="mock-btn next" onclick="mNext()">→</button><div class="mock-label">下一题</div></div>
+  </div>
+  <audio id="mRecAudio" style="display:none"></audio>
+  <div class="mock-overlay" id="mPrepOverlay">
+    <div class="prep-lbl">📝 准备时间</div>
+    <div class="prep-num" id="mPrepNum">1:00</div>
+  </div>
+  <div class="ans-overlay" id="mAnsOverlay">
+    <div class="ans-box">
+      <h3>📝 参考回答</h3>
+      <div class="text" id="mAnsText"></div>
+    </div>
+    <button class="ans-close" onclick="document.getElementById('mAnsOverlay').classList.remove('show')">关闭</button>
+  </div>
+</div>
+
 <script>
-// ========== QUESTION BANK ==========
+// ===== QUESTION BANK =====
 const QB = {
   p1: [
-    {q:"Good morning. My name is James. Can you tell me your full name, please?", hint:"", sample:"", intro:true},
-    {q:"Where are you from?", hint:"Describe your hometown briefly", sample:"I'm from Hangzhou, a city in eastern China famous for West Lake. It's a beautiful place with a mix of traditional culture and modern technology.", cat:"家乡"},
-    {q:"What do you like most about your hometown?", hint:"Pick 1-2 things and explain why", sample:"What I love most is the balance between nature and urban life. You can hike in the tea mountains in the morning and be at a modern café by noon. The food scene is also incredible, especially the local Dongpo pork.", cat:"家乡"},
-    {q:"Has your hometown changed much in recent years?", hint:"Mention 2-3 changes", sample:"It's changed enormously. The metro has expanded from 2 lines to over 10. But many old neighborhoods have been replaced by high-rises, which is a bit sad. The population has also grown significantly.", cat:"家乡"},
-    {q:"Do you work or are you a student?", hint:"Describe your situation with details", sample:"I'm currently working as a software developer. I graduated about three years ago with a degree in Computer Science and have been working ever since. I really enjoy the problem-solving aspect of my job.", cat:"工作/学习"},
-    {q:"Why did you choose this job?", hint:"Talk about motivation or interest", sample:"I chose this career because I love building things that solve real problems. When I was in high school, I made a simple app for my classmates and got hooked. The constant learning in tech also appeals to me — there's always something new.", cat:"工作/学习"},
-    {q:"What do you find most interesting about your work?", hint:"Be specific about an aspect", sample:"The most interesting part is debugging. You spend hours trying to figure out why something isn't working, and when it finally clicks — that 'aha' moment is incredibly satisfying. It's like solving a puzzle.", cat:"工作/学习"},
-    {q:"What do you usually do in your free time?", hint:"Mention 1-2 hobbies with examples", sample:"I'm really into photography, especially street photography. On weekends, I wander around different neighborhoods with my camera. I also play basketball every Thursday with a casual league — it's great for staying active.", cat:"兴趣爱好"},
-    {q:"Do you have a hobby you've kept since childhood?", hint:"Describe how you started and if it's changed", sample:"I've played the piano since I was seven. My parents made me start, and I hated it at first, but now I genuinely love it. It's my way to unwind. I'm not professional or anything — I just play for myself.", cat:"兴趣爱好"},
-    {q:"What new hobby would you like to try?", hint:"Name something and explain why", sample:"I'd love to try rock climbing. Several friends have gotten into it recently and they say it's both physically and mentally challenging. There's a new climbing gym near my office, so I might give it a shot.", cat:"兴趣爱好"},
-    {q:"Do you like traveling?", hint:"Explain with specific destinations", sample:"I absolutely love traveling. I've been to about 15 countries. Last year I went to Japan and was blown away — the culture, the food, how orderly everything is. Travel really broadens your perspective.", cat:"旅行"},
-    {q:"What kind of places do you like to visit?", hint:"Describe preferences with examples", sample:"I'm drawn to places with rich history and architecture. I love wandering through old towns. Natural landscapes too — mountains, coastlines. I'm not really into big shopping destinations or resorts.", cat:"旅行"},
-    {q:"What kind of food do you like?", hint:"Describe specific dishes or cuisines", sample:"I'm pretty adventurous with food. I love Sichuan cuisine for its bold, spicy flavors — mapo tofu, hot pot. But I also appreciate simple, fresh Japanese dishes. I'll try almost anything once.", cat:"食物"},
-    {q:"Can you cook?", hint:"Describe your skill level", sample:"I can cook basic meals. I learned from my mom growing up, and then from YouTube in college. I'm not amazing, but I can make a few dishes really well — my stir-fried noodles are popular with friends.", cat:"食物"},
-    {q:"How often do you use the internet?", hint:"Describe frequency and main uses", sample:"Constantly — probably 10 to 12 hours a day between work and personal life. For work I use it for research and communication. Personally, I use it for streaming, social media, and staying in touch with friends.", cat:"科技"},
-    {q:"What technology could you not live without?", hint:"Choose one and explain why", sample:"My smartphone, without a doubt. It's my alarm, my map, my camera, my wallet. I use it for everything from payments to ordering food. Life would be incredibly inconvenient without it.", cat:"科技"},
-    {q:"Let's move on. Do you like celebrations?", hint:"Describe a specific celebration", sample:"Yes, I love celebrations. The Spring Festival is my favorite — my whole family gathers, we cook together, play mahjong, and just enjoy being together. It's the one time of year everyone comes home.", cat:"文化"},
-    {q:"Do you prefer big parties or small gatherings?", hint:"Compare both", sample:"Small gatherings, definitely. Big parties can be fun but I find them exhausting. With a small group of close friends, you can actually have meaningful conversations. Quality over quantity.", cat:"文化"},
+    {q:"Where are you from?", hint:"Describe your hometown briefly", sample:"I'm from Hangzhou, a city in eastern China famous for West Lake. It's a beautiful place with a great balance of traditional culture and modern technology.", cat:"家乡"},
+    {q:"What do you like most about your hometown?", hint:"Pick 1-2 things and explain", sample:"I love the balance between nature and city life — hiking in tea mountains in the morning, modern cafés by noon. The food scene is also incredible, especially Dongpo pork.", cat:"家乡"},
+    {q:"Has your hometown changed much?", hint:"Mention 2-3 changes", sample:"Enormously. The metro expanded from 2 lines to over 10. But many old neighborhoods have been replaced, which is a bit sad. The population has grown significantly too.", cat:"家乡"},
+    {q:"Would you like to live there in the future?", hint:"Give balanced reasons", sample:"I'm torn. My family's there and quality of life is great. But I'd love to experience living abroad first. Maybe I'll return eventually.", cat:"家乡"},
+    {q:"Do you work or are you a student?", hint:"Describe your situation with details", sample:"I'm a software developer. I graduated about three years ago with a CS degree. I really enjoy the problem-solving aspect and the constant learning in tech.", cat:"工作/学习"},
+    {q:"Why did you choose this job?", hint:"Talk about motivation", sample:"I love building things that solve real problems. In high school I made a simple app and got hooked. The constant learning in tech also appeals to me.", cat:"工作/学习"},
+    {q:"What do you find most interesting about your work?", hint:"Be specific", sample:"Debugging — the moment when everything clicks after hours of investigation. That 'aha' moment is incredibly satisfying. It's like solving a puzzle.", cat:"工作/学习"},
+    {q:"Would you change your job if you could?", hint:"Yes or no with reasoning", sample:"Not immediately, but I'm open. I've been learning about AI and could see myself moving in that direction in a few years.", cat:"工作/学习"},
+    {q:"What do you do in your free time?", hint:"1-2 hobbies with examples", sample:"I'm into street photography — wandering neighborhoods with my camera. I also play basketball in a casual league every Thursday.", cat:"兴趣爱好"},
+    {q:"Do you have a childhood hobby?", hint:"Describe how it started and changed", sample:"Piano, since age seven. My parents made me start — I hated it at first but now I genuinely love it. It's how I unwind after a stressful day.", cat:"兴趣爱好"},
+    {q:"What new hobby would you like to try?", hint:"Name one and explain why", sample:"Rock climbing. Friends say it's physically and mentally challenging. There's a new gym near my office — I might give it a shot.", cat:"兴趣爱好"},
+    {q:"Do you like traveling?", hint:"Explain with destinations", sample:"Absolutely. I've been to about 15 countries. Japan last year was incredible — the culture, food, how orderly everything is. Travel really broadens your perspective.", cat:"旅行"},
+    {q:"What kind of places attract you?", hint:"Describe preferences", sample:"Places with rich history and architecture — old towns, ancient sites. Also natural landscapes like mountains and coastlines. Not really into big shopping destinations.", cat:"旅行"},
+    {q:"What kind of food do you like?", hint:"Specific dishes or cuisines", sample:"I'm adventurous. I love Sichuan — mapo tofu, hot pot. But also simple Japanese sashimi. I'll try almost anything once.", cat:"食物"},
+    {q:"Can you cook?", hint:"Describe your skill level", sample:"I can cook basics. Learned from my mom and YouTube. Not amazing but I make excellent stir-fried noodles.", cat:"食物"},
+    {q:"How often do you use the internet?", hint:"Frequency and main uses", sample:"Constantly — 10-12 hours a day. For work: research, communication. Personal: streaming, social media, staying in touch.", cat:"科技"},
+    {q:"What technology couldn't you live without?", hint:"Pick one, explain deeply", sample:"My smartphone. It's my alarm, map, camera, wallet. I use it for payments, food orders, everything. Life would be incredibly inconvenient without it.", cat:"科技"},
+    {q:"Do you like celebrations?", hint:"Describe a specific one", sample:"Yes, Spring Festival is my favorite. My whole family gathers, we cook together, play mahjong. It's the one time everyone comes home.", cat:"文化"},
   ],
   p2: [
-    {topic:"Describe a person who has influenced you.", bullets:["Who this person is","How you know them","What they are like","Explain why they influenced you"], sample:"The person who has influenced me most is my high school English teacher, Ms. Zhang. She was incredibly passionate about literature and genuinely cared about each student. I remember she stayed after school for two hours to help me prepare for a speech competition. Her dedication taught me that excellence comes from going the extra mile. Because of her, I fell in love with English, which eventually led me to study abroad.", cat:"人物"},
-    {topic:"Describe a memorable trip you took.", bullets:["Where you went","Who you went with","What you did","Explain why it was memorable"], sample:"The most memorable trip was a California road trip with two friends. We drove from San Francisco to LA over five days, stopping at beach towns along the way. The highlight was watching sunset at Big Sur — the cliffs, the ocean, the golden light. It was memorable because we had no strict plan. The spontaneity made every day an adventure.", cat:"经历"},
-    {topic:"Describe a gift you received that was special.", bullets:["What the gift was","Who gave it to you","When you received it","Explain why it was special"], sample:"The most special gift was a second-hand film camera from my grandfather, given on my 18th birthday. It was originally his from the 1970s and still worked. What made it special wasn't its value but the stories — he had photographed his travels across China with it. It sparked my passion for photography and became a bridge between generations.", cat:"物品"},
-    {topic:"Describe a place you enjoy visiting.", bullets:["Where the place is","What it looks like","What you do there","Explain why you enjoy it"], sample:"I love a small café called The Reading Room near my apartment. It's on a quiet side street with floor-to-ceiling bookshelves, warm lighting, and soft jazz. I go there every Sunday with a book. It's a sanctuary from the city noise — a place where I can completely relax.", cat:"地点"},
-    {topic:"Describe a skill you want to learn.", bullets:["What the skill is","How you would learn it","Why you want to learn it","How it might help you"], sample:"I really want to learn guitar. I'd start with online tutorials and maybe take lessons. I want a creative outlet outside of work — something that doesn't involve a screen. Playing music would be a great way to decompress.", cat:"个人发展"},
-    {topic:"Describe an achievement you are proud of.", bullets:["What the achievement was","When it happened","How you achieved it","Explain why you are proud"], sample:"I'm most proud of finishing my first marathon last year. I trained for six months — early morning runs in the rain, dealing with injuries, pushing through. Crossing the finish line was one of the most emotional moments of my life. It taught me I can achieve anything with consistent effort.", cat:"经历"},
-    {topic:"Describe a book you enjoyed reading.", bullets:["What the book was","When you read it","What it was about","Explain why you enjoyed it"], sample:"One book that left a deep impression is 'Sapiens' by Yuval Noah Harari. It's a sweeping history of humankind from the Stone Age to now. What I loved was how it connected history, biology, and economics, making me question assumptions. It completely changed how I think about society.", cat:"文化"},
-    {topic:"Describe a piece of technology you find useful.", bullets:["What it is","When you got it","How you use it","Explain why it is useful"], sample:"My noise-canceling headphones. I bought them a year ago when I started working in an open office. They completely transform my environment — I can focus deeply even when it's noisy. I also use them during my commute for podcasts.", cat:"科技"},
-    {topic:"Describe a time you helped someone.", bullets:["Who you helped","What the situation was","How you helped","Explain how you felt"], sample:"I helped a new colleague struggling with a work project. She'd been assigned a task using unfamiliar software. I spent a few hours walking her through it and shared my templates. Seeing her gain confidence and complete the project was incredibly rewarding.", cat:"经历"},
-    {topic:"Describe a tradition in your country.", bullets:["What the tradition is","When it takes place","What people do","Explain its significance"], sample:"The Mid-Autumn Festival is one of the most important. It falls on the 15th day of the 8th lunar month. Families gather, eat mooncakes, and admire the full moon. The round mooncakes symbolize completeness and reunion. Even people working far away try to return home.", cat:"文化"},
-    {topic:"Describe your dream job.", bullets:["What the job is","What it involves","Why you want it","What skills are needed"], sample:"My dream job would be running my own small software company building educational apps. It would combine coding, design, and talking with users. I want it because it merges technical skills with a sense of purpose — helping people learn more effectively.", cat:"个人发展"},
-    {topic:"Describe a famous person you admire.", bullets:["Who the person is","What they do","How you learned about them","Explain why you admire them"], sample:"I admire Elon Musk. Not because I agree with everything, but because of his audacity. When everyone said electric cars wouldn't go mainstream, he built Tesla. When people said private space travel was impossible, he built SpaceX. He's a reminder that bold ideas with relentless execution can change the world.", cat:"人物"},
-    {topic:"Describe a change you would like in your city.", bullets:["What the change is","Why it is needed","How it could be done","Who would benefit"], sample:"I'd love more dedicated bicycle lanes. Currently cyclists share roads with cars, which is dangerous. The change could start with pilot routes using barriers. It would benefit cyclists for safety, drivers for reduced congestion, and the environment through lower emissions.", cat:"社会"},
-    {topic:"Describe a time you learned something online.", bullets:["What you learned","Where you learned it","Why you decided to learn","Explain how useful it was"], sample:"During the pandemic I learned video editing through YouTube. I'd always wanted to make better videos for family events. I spent two weeks on tutorials and now I can edit competently. I've even made short films for friends' weddings.", cat:"个人发展"},
-    {topic:"Describe an important plant in your country.", bullets:["What the plant is","Where it grows","What it looks like","Explain why it is important"], sample:"Bamboo is incredibly important in China. It grows widely in the south, tall and green, growing almost a meter a day. Symbolically it represents resilience — it bends but doesn't break. Practically, it's used everywhere from construction to cuisine.", cat:"自然"},
+    {topic:"Describe a person who has influenced you.", bullets:["Who this person is","How you know them","What they are like","Explain why they influenced you"], sample:"My high school English teacher, Ms. Zhang. She was passionate about literature and genuinely cared about each student. She stayed after school two hours to help me prepare for a speech competition. Her dedication showed me that excellence comes from going the extra mile. She sparked my love for English.", cat:"人物"},
+    {topic:"Describe a memorable trip you took.", bullets:["Where you went","Who you went with","What you did","Explain why it was memorable"], sample:"A California road trip with two friends. Five days from San Francisco to LA, stopping at beach towns. The sunset at Big Sur — cliffs, ocean, golden light. Memorable because we had no strict plan — the spontaneity made it an adventure.", cat:"经历"},
+    {topic:"Describe a gift that was special to you.", bullets:["What the gift was","Who gave it to you","When you received it","Explain why it was special"], sample:"A second-hand film camera from my grandfather on my 18th birthday. From the 1970s, still working. Special not for its value but for the stories — he photographed his travels across China with it. It sparked my photography passion.", cat:"物品"},
+    {topic:"Describe a place you enjoy visiting.", bullets:["Where the place is","What it looks like","What you do there","Explain why you enjoy it"], sample:"The Reading Room café near my apartment. Quiet side street, floor-to-ceiling bookshelves, warm lighting, soft jazz. I go every Sunday with a book. It's a sanctuary from the city — a place to completely relax.", cat:"地点"},
+    {topic:"Describe a skill you want to learn.", bullets:["What the skill is","How you would learn it","Why you want to learn it","How it might help you"], sample:"Guitar. I'd start with online tutorials and maybe lessons. I want a creative outlet outside of work — something that doesn't involve a screen. Playing music would be a great way to decompress.", cat:"个人发展"},
+    {topic:"Describe an achievement you're proud of.", bullets:["What the achievement was","When it happened","How you achieved it","Explain why you are proud"], sample:"Finishing my first marathon last year. Six months of training — early runs in rain, dealing with injuries, pushing through. Crossing the finish line was incredibly emotional. It taught me I can achieve anything with consistent effort.", cat:"经历"},
+    {topic:"Describe a book you enjoyed.", bullets:["What the book was","When you read it","What it was about","Explain why you enjoyed it"], sample:"'Sapiens' by Yuval Noah Harari. Sweeping history of humankind from the Stone Age to now. What I loved: it connected history, biology, and economics, making me question assumptions. Completely changed how I think about society.", cat:"文化"},
+    {topic:"Describe a useful piece of technology.", bullets:["What it is","When you got it","How you use it","Explain why it is useful"], sample:"Noise-canceling headphones. Bought a year ago for open office work. They transform my environment — I can focus even when it's noisy. Also use them during my commute for podcasts.", cat:"科技"},
+    {topic:"Describe a time you helped someone.", bullets:["Who you helped","What the situation was","How you helped","Explain how you felt"], sample:"Helped a new colleague struggling with unfamiliar software. Spent a few hours walking her through basics and shared templates. Seeing her gain confidence and complete the project was incredibly rewarding.", cat:"经历"},
+    {topic:"Describe a tradition in your country.", bullets:["What the tradition is","When it takes place","What people do","Explain its significance"], sample:"The Mid-Autumn Festival, 15th day of 8th lunar month. Families gather, eat mooncakes, admire the full moon. Round mooncakes symbolize completeness and reunion. People working far away try to return home.", cat:"文化"},
+    {topic:"Describe your dream job.", bullets:["What the job is","What it involves","Why you want it","What skills are needed"], sample:"Running my own software company building educational apps. Combines coding, design, and talking with users. I want it because it merges technical skills with a sense of purpose — helping people learn better.", cat:"个人发展"},
+    {topic:"Describe a change you'd like in your city.", bullets:["What the change is","Why it is needed","How it could be done","Who would benefit"], sample:"More dedicated bicycle lanes. Currently cyclists share roads with cars — dangerous. Start with pilot routes on wide roads using barriers. Benefits everyone: cyclists, drivers, and the environment.", cat:"社会"},
+    {topic:"Describe a time you learned online.", bullets:["What you learned","Where you learned it","Why you decided to learn","Explain how useful it was"], sample:"Video editing via YouTube during the pandemic. Always wanted better family videos. Two weeks of tutorials — now I edit competently, even made short films for friends' weddings.", cat:"个人发展"},
+    {topic:"Describe an important plant in your country.", bullets:["What the plant is","Where it grows","What it looks like","Explain why it is important"], sample:"Bamboo. Grows widely in southern China. Tall, green, grows almost a meter daily. Symbolically: resilience — bends but doesn't break. Practically: used everywhere from construction to cuisine.", cat:"自然"},
   ],
   p3: [
-    {q:"How do you think AI will change education?", sample:"AI can personalize learning to each student's pace, and let teachers focus on mentoring rather than grading. But there are risks — over-reliance, privacy, the digital divide. The ideal future is AI assisting teachers, not replacing them.", cat:"科技"},
-    {q:"Should schools teach more practical or academic skills?", sample:"Both are essential. Academic knowledge builds critical thinking. Practical skills are immediately useful. The ideal integrates both — applying math to personal finance, writing to real communication. Schools should prepare students for life, not just exams.", cat:"教育"},
-    {q:"Do famous people have a responsibility to be role models?", sample:"To some degree yes, because of their enormous influence on young people. But they're also human. The responsibility comes with choosing to use a public platform. We should distinguish between entertainers and those who position themselves as moral authorities.", cat:"社会"},
-    {q:"How has social media changed communication?", sample:"It's made communication instant and global — we can video call across the world for free. But it's also reduced face-to-face interaction. Sometimes I see families at restaurants all staring at phones. The quality of connection matters more than quantity.", cat:"科技"},
-    {q:"What can individuals do for the environment?", sample:"Reduce consumption, reduce waste, reduce carbon footprint — walk more, eat less meat, avoid single-use plastics. But individual action alone isn't enough. We need systemic change through policy and corporate responsibility. Individual actions create social norms that drive policy.", cat:"环境"},
-    {q:"Do young people today have too much pressure?", sample:"Yes — from academic expectations, extracurriculars, social media comparison. The competition starts younger each generation. Some pressure can be motivating, but excessive, constant pressure without support is harmful. We need to normalize talking about mental health.", cat:"社会"},
-    {q:"What are advantages and disadvantages of city life?", sample:"Advantages: job opportunities, diversity, entertainment, public transport. Disadvantages: cost of living, pollution, noise, loneliness despite crowds. Some thrive on urban energy; others find it draining. A medium-sized city often offers the best of both.", cat:"社会"},
-    {q:"How has the definition of success changed?", sample:"Previously it meant a stable job, house, family. Now there's more emphasis on personal fulfillment, work-life balance, experiences over possessions. Social media has broadened what success looks like but also created unrealistic comparisons. Many young people now value autonomy and purpose over pure wealth.", cat:"社会"},
+    {q:"How do you think AI will change education?", sample:"AI can personalize learning and let teachers focus on mentoring. But risks: over-reliance, privacy, digital divide. The ideal: AI assisting teachers, not replacing them.", cat:"科技"},
+    {q:"Should schools teach practical or academic skills?", sample:"Both. Academic knowledge builds critical thinking. Practical skills are immediately useful. The ideal integrates both — applying math to finance, writing to real communication.", cat:"教育"},
+    {q:"Do famous people need to be role models?", sample:"To some degree, because of their influence on youth. But they're human. Responsibility comes with choosing a public platform. Distinguish entertainers from moral authorities.", cat:"社会"},
+    {q:"How has social media changed communication?", sample:"Made it instant and global. But reduced face-to-face interaction. Quality of connection matters more than quantity. It's a paradox: more connected yet more isolated.", cat:"科技"},
+    {q:"What can individuals do for the environment?", sample:"Reduce consumption, waste, carbon footprint. But individual action alone isn't enough — systemic change through policy is essential. Individual actions create social norms that drive policy.", cat:"环境"},
+    {q:"Do young people have too much pressure?", sample:"Yes — from academics, extracurriculars, social media. Competition starts younger. Some pressure motivates, but excessive pressure without support harms. We need to talk about mental health.", cat:"社会"},
+    {q:"Advantages and disadvantages of city life?", sample:"Advantages: jobs, diversity, entertainment, transport. Disadvantages: cost, pollution, noise, loneliness despite crowds. A medium city often offers the best of both.", cat:"社会"},
+    {q:"How has the definition of success changed?", sample:"Before: stable job, house, family. Now: fulfillment, work-life balance, experiences over possessions. Many young people value autonomy and purpose over pure wealth.", cat:"社会"},
   ]
 };
 
-// ========== APP STATE ==========
-let mode = 'mock'; // mock | practice
-let currentPart = 'p1';
+// ===== SHARED STATE =====
+let mode = '', pTab = 'p1', pCat = '全部';
 let p1Idx = 0, p2Idx = 0, p3Idx = 0;
-let questionQueue = [];
-let queuePos = 0;
-let examRunning = false;
-let timerInterval = null;
-let partTimer = 0;
-let mediaRecorder = null;
-let audioChunks = [];
-let recording = false;
+let p1Shuffled = [], p2Shuffled = [], p3Shuffled = [];
+let pTimer = null, pMediaRecorder = null, pAudioChunks = [], pRecInterval = null;
+// Mock state
+let mQueue = [], mPos = 0, mTimer = null, mMediaRecorder = null, mAudioChunks = [];
 
-// ========== MODE SELECT ==========
-// ========== START TEST ==========
-function startTest() {
-  document.getElementById('startScreen').style.display = 'none';
-  document.getElementById('callScreen').style.display = 'flex';
+function shuffle(a) { for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} }
 
-  if (mode === 'mock') {
-    // Build full exam sequence
-    questionQueue = [];
-    // Part 1: pick 8 random questions
-    var p1pool = QB.p1.slice();
-    shuffle(p1pool);
-    for (var i = 0; i < Math.min(8, p1pool.length); i++) {
-      questionQueue.push({part:'p1', data:p1pool[i]});
-    }
-    // Part 2: pick 1 random topic
-    var p2pool = QB.p2.slice();
-    shuffle(p2pool);
-    questionQueue.push({part:'p2', data:p2pool[0]});
-    // Part 3: pick 4 random questions
-    var p3pool = QB.p3.slice();
-    shuffle(p3pool);
-    for (var i = 0; i < Math.min(4, p3pool.length); i++) {
-      questionQueue.push({part:'p3', data:p3pool[i]});
-    }
-    queuePos = 0;
-    examRunning = true;
-    startPartTimer(290); // ~5 min for Part 1
-  } else {
-    // Practice mode: just shuffle everything
-    questionQueue = [];
-    for (var i = 0; i < QB.p1.length; i++) questionQueue.push({part:'p1', data:QB.p1[i]});
-    for (var i = 0; i < QB.p2.length; i++) questionQueue.push({part:'p2', data:QB.p2[i]});
-    for (var i = 0; i < QB.p3.length; i++) questionQueue.push({part:'p3', data:QB.p3[i]});
-    shuffle(questionQueue);
-    queuePos = 0;
-    examRunning = true;
-    startPartTimer(0); // no timer in practice
-  }
-  showCurrentQuestion();
+// ===== NAVIGATION =====
+function backToStart() {
+  stopAllTimers();
+  document.getElementById('practiceUI').style.display = 'none';
+  document.getElementById('mockUI').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'block';
 }
 
-function shuffle(a) {
-  for (var i = a.length-1; i>0; i--) { var j = Math.floor(Math.random()*(i+1)); var t = a[i]; a[i]=a[j]; a[j]=t; }
-}
-
-// ========== SHOW QUESTION ==========
-function showCurrentQuestion() {
-  if (queuePos >= questionQueue.length) {
-    endExam();
-    return;
-  }
-  var item = questionQueue[queuePos];
-  currentPart = item.part;
-  var d = item.data;
-
-  document.getElementById('partBadge').textContent = currentPart === 'p1' ? 'Part 1 · 简介问答' : currentPart === 'p2' ? 'Part 2 · 话题演讲' : 'Part 3 · 深入讨论';
-
-  if (currentPart === 'p2') {
-    document.getElementById('captionQ').textContent = d.topic;
-    var bulletsHtml = '<span>You should say:</span><br>';
-    for (var b = 0; b < d.bullets.length; b++) bulletsHtml += '• ' + d.bullets[b] + '<br>';
-    document.getElementById('captionBullets').innerHTML = bulletsHtml;
-    document.getElementById('captionBullets').style.display = 'block';
-    document.getElementById('captionHint').textContent = '';
-  } else {
-    document.getElementById('captionQ').textContent = d.q;
-    document.getElementById('captionBullets').style.display = 'none';
-    document.getElementById('captionHint').textContent = d.hint || '';
-  }
-
-  // Speaker animation
-  var av = document.getElementById('examinerAvatar');
-  av.classList.add('speaking');
-  setTimeout(function() { av.classList.remove('speaking'); }, 2000);
-}
-
-// ========== TIMER ==========
-function startPartTimer(seconds) {
-  stopTimer();
-  if (seconds <= 0) { document.getElementById('examTimer').textContent = ''; return; }
-  var end = Date.now() + seconds * 1000;
-  timerInterval = setInterval(function() {
-    var remain = Math.max(0, Math.ceil((end - Date.now()) / 1000));
-    var m = Math.floor(remain/60), s = remain%60;
-    var el = document.getElementById('examTimer');
-    el.textContent = m + ':' + (s<10?'0':'') + s;
-    el.className = 'exam-timer' + (remain<=60?' warn':'') + (remain<=30?' urgent':'');
-    if (remain <= 0) {
-      stopTimer();
-      // Auto-advance to next part
-      if (currentPart === 'p1') {
-        // Find next P2 question in queue
-        for (var i = queuePos; i < questionQueue.length; i++) {
-          if (questionQueue[i].part === 'p2') { queuePos = i; break; }
-        }
-        startPartTimer(240); // 4 min for Part 2
-        showCurrentQuestion();
-        startPrepCountdown();
-      }
-    }
-  }, 200);
-}
-
-function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
-
-// ========== PART 2 PREP ==========
-function startPrepCountdown() {
-  var ov = document.getElementById('prepOverlay');
-  document.getElementById('prepTopic').textContent = questionQueue[queuePos].data.topic;
-  ov.classList.add('show');
-  var remain = 60;
-  document.getElementById('prepTimer').textContent = '1:00';
-  var prepInterval = setInterval(function() {
-    remain--;
-    var m = Math.floor(remain/60), s = remain%60;
-    document.getElementById('prepTimer').textContent = m + ':' + (s<10?'0':'') + s;
-    if (remain <= 0) { clearInterval(prepInterval); ov.classList.remove('show'); }
-  }, 1000);
-}
-
-// ========== NAVIGATION ==========
-function handleNext() {
-  if (!examRunning) return;
-  var item = questionQueue[queuePos];
-  // If Part 2, show prep first
-  if (item.part === 'p2' && !item._prepDone) {
-    item._prepDone = true;
-    startPrepCountdown();
-    return;
-  }
-  queuePos++;
-  showCurrentQuestion();
-}
-
-function handleSkip() { queuePos++; showCurrentQuestion(); }
-
-// ========== RECORDING ==========
-function toggleRec() {
-  if (recording) { stopRec(); } else { startRec(); }
-}
-
-function startRec() {
-  if (!navigator.mediaDevices) return;
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-    audioChunks = [];
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = function(e) { if (e.data.size>0) audioChunks.push(e.data); };
-    mediaRecorder.onstop = function() {
-      var blob = new Blob(audioChunks, {type:'audio/webm'});
-      var audio = document.getElementById('recAudio');
-      audio.src = URL.createObjectURL(blob);
-      audio.style.display = 'block';
-      audio.controls = true;
-      audio.style.position = 'fixed';
-      audio.style.bottom = '80px';
-      audio.style.left = '50%';
-      audio.style.transform = 'translateX(-50%)';
-      audio.style.zIndex = '50';
-      document.getElementById('selfView').classList.remove('recording');
-      document.getElementById('btnRec').classList.remove('active');
-    };
-    mediaRecorder.start();
-    recording = true;
-    document.getElementById('btnRec').classList.add('active');
-    document.getElementById('selfView').classList.add('recording');
-  }).catch(function(e){
-    alert('无法访问麦克风。\n\n请检查：\n1. 浏览器是否允许麦克风权限\n2. 是否使用 HTTPS 打开（非 file://）\n3. 系统麦克风是否可用\n\n错误: ' + (e.message || '未知'));
-  });
-}
-
-function selectMode(m) {
+function startMode(m) {
   mode = m;
-  document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.remove('active'); });
-  document.querySelector('.mode-btn[onclick*="'+m+'"]').classList.add('active');
+  document.getElementById('startScreen').style.display = 'none';
+  if (mode === 'practice') {
+    document.getElementById('practiceUI').style.display = 'block';
+    document.getElementById('mockUI').style.display = 'none';
+    initPractice();
+  } else {
+    document.getElementById('practiceUI').style.display = 'none';
+    document.getElementById('mockUI').style.display = 'flex';
+    initMock();
+  }
 }
 
-function stopRec() {
-  if (mediaRecorder) { mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(function(t){t.stop();}); }
-  recording = false;
-  document.getElementById('btnRec').classList.remove('active');
-  document.getElementById('selfView').classList.remove('recording');
+// ====== PRACTICE MODE ======
+function initPractice() {
+  pTab = 'p1'; pCat = '全部';
+  document.querySelectorAll('#pTabs .tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+  document.getElementById('pTabs').querySelectorAll('.tab').forEach(function(t){
+    t.onclick = function(){ switchPTab(this.dataset.tab); };
+  });
+  switchPTab('p1');
 }
 
-// ========== SAMPLE ANSWER ==========
-function showSample() {
-  var item = questionQueue[queuePos];
-  var d = item.data;
-  var text = d.sample || '暂无参考回答';
-  document.getElementById('answerText').textContent = text;
-  document.getElementById('answerLabel').textContent = item.part === 'p2' ? '📝 参考回答要点' : '📝 参考回答';
-  document.getElementById('answerOverlay').classList.add('show');
+function switchPTab(tab) {
+  pTab = tab;
+  document.querySelectorAll('#pTabs .tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab===tab); });
+  pCat = '全部'; p1Shuffled=[]; p2Shuffled=[]; p3Shuffled=[]; p1Idx=0; p2Idx=0; p3Idx=0;
+  renderPCats();
+  showPQuestion();
 }
 
-function closeAnswer() { document.getElementById('answerOverlay').classList.remove('show'); }
-
-// ========== END EXAM ==========
-function endExam() {
-  examRunning = false;
-  stopTimer();
-  stopRec();
-  document.getElementById('doneScreen').classList.add('show');
-  document.getElementById('doneMsg').textContent = mode === 'mock' ? '完整模考已完成 · 共 ' + questionQueue.length + ' 题' : '练习已完成';
+function getPCats() {
+  var cats = {};
+  var pool = pTab==='p1' ? QB.p1 : pTab==='p2' ? QB.p2 : QB.p3;
+  for (var i=0;i<pool.length;i++) cats[pool[i].cat||'']=true;
+  delete cats[''];
+  return ['全部'].concat(Object.keys(cats));
 }
 
-// ========== KEYBOARD ==========
-document.addEventListener('keydown', function(e) {
-  if (!examRunning) return;
-  if (e.key === 'ArrowRight') { handleNext(); }
-  if (e.key === 'ArrowLeft') { handleSkip(); }
-  if (e.key === ' ') { e.preventDefault(); toggleRec(); }
-  if (e.key === 's' || e.key === 'S') { showSample(); }
-  if (e.key === 'Escape') { closeAnswer(); }
+function renderPCats() {
+  var html = '';
+  var cats = getPCats();
+  for (var i=0;i<cats.length;i++) {
+    html += '<button class="cat-chip'+(cats[i]===pCat?' active':'')+'" onclick="filterPCat(\''+cats[i]+'\')">'+cats[i]+'</button>';
+  }
+  document.getElementById('pCatBar').innerHTML = html;
+}
+
+function filterPCat(c) { pCat=c; renderPCats(); p1Shuffled=[]; p2Shuffled=[]; p3Shuffled=[]; p1Idx=0; p2Idx=0; p3Idx=0; showPQuestion(); }
+
+function getPFiltered() {
+  var pool = pTab==='p1' ? QB.p1 : pTab==='p2' ? QB.p2 : QB.p3;
+  if (pCat !== '全部') pool = pool.filter(function(x){ return (x.cat||'')===pCat; });
+  return pool;
+}
+
+function showPQuestion() {
+  stopPTimer(); pStopRec();
+  var pool = getPFiltered();
+  var idxKey = pTab==='p1'?'p1Idx':pTab==='p2'?'p2Idx':'p3Idx';
+  var shufKey = pTab==='p1'?'p1Shuffled':pTab==='p2'?'p2Shuffled':'p3Shuffled';
+  var idx = window[idxKey], shuf = window[shufKey];
+  if (shuf.length===0 || idx>=shuf.length) {
+    shuf = []; for(var i=0;i<pool.length;i++) shuf.push(i);
+    shuffle(shuf); window[shufKey]=shuf; window[idxKey]=0; idx=0;
+  }
+  var item = pool[shuf[idx]];
+  document.getElementById('pCardTitle').textContent = (pTab==='p1'?'💬 Part 1 · ':'📋 Part 2 · ':'🎯 Part 3 · ':'') + (item.cat||'');
+  document.getElementById('pCardQ').textContent = item.q || item.topic || '';
+  document.getElementById('pCardHint').style.display = item.hint ? 'block':'none';
+  document.getElementById('pCardHint').textContent = item.hint || '';
+  var hasBullets = item.bullets && item.bullets.length>0;
+  document.getElementById('pCardBullets').style.display = hasBullets ? 'block':'none';
+  if (hasBullets) {
+    var bhtml = '<span>You should say:</span><br>';
+    for(var b=0;b<item.bullets.length;b++) bhtml += '• '+item.bullets[b]+'<br>';
+    document.getElementById('pCardBullets').innerHTML = bhtml;
+  }
+  document.getElementById('pNotes').style.display = pTab==='p2' ? 'block':'none';
+  document.getElementById('pNotes').value = '';
+  document.getElementById('pTimerBlock').style.display = 'none';
+  document.getElementById('pCardSample').textContent = item.sample || '';
+  document.getElementById('pCardAnswer').classList.remove('show');
+  document.getElementById('pRecAudio').style.display = 'none';
+  document.getElementById('pRecTime').textContent = '00:00';
+  var total = pool.length;
+  document.getElementById('pProgLabel').textContent = (idx+1)+' / '+total;
+  document.getElementById('pProgFill').style.width = ((idx/total)*100)+'%';
+}
+
+function pNext() { var k = pTab==='p1'?'p1Idx':pTab==='p2'?'p2Idx':'p3Idx'; window[k]++; showPQuestion(); }
+function pSkip() { pNext(); }
+function pShowAnswer() { document.getElementById('pCardAnswer').classList.toggle('show'); }
+
+function pToggleRec() {
+  if (pMediaRecorder && pMediaRecorder.state==='recording') { pStopRec(); return; }
+  if (!navigator.mediaDevices) return;
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+    pAudioChunks=[]; pMediaRecorder=new MediaRecorder(s);
+    pMediaRecorder.ondataavailable=function(e){ if(e.data.size>0) pAudioChunks.push(e.data); };
+    pMediaRecorder.onstop=function(){
+      var b=new Blob(pAudioChunks,{type:'audio/webm'});
+      var a=document.getElementById('pRecAudio'); a.src=URL.createObjectURL(b); a.style.display='block';
+      document.getElementById('pRecDot').classList.remove('on');
+      document.getElementById('pBtnRec').textContent='🎤 录音';
+    };
+    pMediaRecorder.start(); var start=Date.now();
+    document.getElementById('pRecDot').classList.add('on');
+    document.getElementById('pBtnRec').textContent='⏹ 停止';
+    pRecInterval=setInterval(function(){
+      var e=Math.floor((Date.now()-start)/1000), m=Math.floor(e/60), s=e%60;
+      document.getElementById('pRecTime').textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+    },200);
+  }).catch(function(e){ alert('无法访问麦克风\n请使用 HTTPS 打开网页\n\n'+e.message); });
+}
+
+function pStopRec() {
+  if(pMediaRecorder){ pMediaRecorder.stop(); pMediaRecorder.stream.getTracks().forEach(function(t){t.stop();}); }
+  if(pRecInterval){ clearInterval(pRecInterval); }
+}
+
+function stopPTimer() { if(pTimer){ clearInterval(pTimer); pTimer=null; } }
+function stopAllTimers() { stopPTimer(); if(mTimer){ clearInterval(mTimer); mTimer=null; } }
+
+// ====== MOCK EXAM MODE ======
+function initMock() {
+  mQueue = [];
+  var p1pool = QB.p1.slice(); shuffle(p1pool);
+  for(var i=0;i<Math.min(8,p1pool.length);i++) mQueue.push({part:'p1',data:p1pool[i]});
+  var p2pool = QB.p2.slice(); shuffle(p2pool);
+  mQueue.push({part:'p2',data:p2pool[0]});
+  var p3pool = QB.p3.slice(); shuffle(p3pool);
+  for(var i=0;i<Math.min(4,p3pool.length);i++) mQueue.push({part:'p3',data:p3pool[i]});
+  mPos = 0;
+  startMockTimer(290);
+  showMockQuestion();
+}
+
+function showMockQuestion() {
+  if (mPos >= mQueue.length) { endMock(); return; }
+  var item = mQueue[mPos], d = item.data;
+  document.getElementById('mockBadge').textContent = item.part==='p1'?'Part 1':item.part==='p2'?'Part 2':'Part 3';
+  document.getElementById('mockQ').textContent = d.q || d.topic || '';
+  document.getElementById('mockHint').textContent = d.hint || '';
+  var hasB = d.bullets && d.bullets.length>0;
+  document.getElementById('mockBullets').style.display = hasB?'block':'none';
+  if (hasB) {
+    var bh = '<span>You should say:</span><br>';
+    for(var b=0;b<d.bullets.length;b++) bh += '• '+d.bullets[b]+'<br>';
+    document.getElementById('mockBullets').innerHTML = bh;
+  }
+  var av = document.getElementById('mockAvatar');
+  av.classList.add('speaking');
+  setTimeout(function(){ av.classList.remove('speaking'); }, 2000);
+}
+
+function startMockTimer(sec) {
+  stopAllTimers();
+  if (sec<=0) { document.getElementById('mockTimer').textContent=''; return; }
+  var end=Date.now()+sec*1000;
+  mTimer=setInterval(function(){
+    var r=Math.max(0,Math.ceil((end-Date.now())/1000));
+    var mm=Math.floor(r/60), ss=r%60;
+    var el=document.getElementById('mockTimer');
+    el.textContent=mm+':'+(ss<10?'0':'')+ss;
+    el.className='mock-timer'+(r<=60?' warn':'')+(r<=30?' urgent':'');
+    if(r<=0){ clearInterval(mTimer); }
+  },200);
+}
+
+function mNext() {
+  var item = mQueue[mPos];
+  if (item.part==='p2' && !item._prep) {
+    item._prep=true;
+    var ov=document.getElementById('mPrepOverlay'); ov.classList.add('show');
+    var s=60;
+    document.getElementById('mPrepNum').textContent='1:00';
+    var pi=setInterval(function(){
+      s--; var mm2=Math.floor(s/60), ss2=s%60;
+      document.getElementById('mPrepNum').textContent=mm2+':'+(ss2<10?'0':'')+ss2;
+      if(s<=0){ clearInterval(pi); ov.classList.remove('show'); }
+    },1000);
+    return;
+  }
+  mPos++; showMockQuestion();
+}
+
+function mSkip() { mPos++; showMockQuestion(); }
+
+function mShowAns() {
+  var d = mQueue[mPos].data;
+  document.getElementById('mAnsText').textContent = d.sample || '暂无参考';
+  document.getElementById('mAnsOverlay').classList.add('show');
+}
+
+function mToggleRec() {
+  if (mMediaRecorder && mMediaRecorder.state==='recording') { mStopRec(); return; }
+  if (!navigator.mediaDevices) return;
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+    mAudioChunks=[]; mMediaRecorder=new MediaRecorder(s);
+    mMediaRecorder.ondataavailable=function(e){ if(e.data.size>0) mAudioChunks.push(e.data); };
+    mMediaRecorder.onstop=function(){
+      var b=new Blob(mAudioChunks,{type:'audio/webm'});
+      var a=document.getElementById('mRecAudio'); a.src=URL.createObjectURL(b); a.controls=true;
+      a.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:50;display:block';
+      document.getElementById('mockSelf').classList.remove('recording');
+      document.getElementById('mBtnRec').classList.remove('on');
+    };
+    mMediaRecorder.start();
+    document.getElementById('mockSelf').classList.add('recording');
+    document.getElementById('mBtnRec').classList.add('on');
+  }).catch(function(e){ alert('无法访问麦克风\n请使用 HTTPS 打开\n\n'+e.message); });
+}
+
+function mStopRec() {
+  if(mMediaRecorder){ mMediaRecorder.stop(); mMediaRecorder.stream.getTracks().forEach(function(t){t.stop();}); }
+}
+
+function endMock() {
+  stopAllTimers(); mStopRec();
+  alert('🎉 模考完成！共 '+mQueue.length+' 题');
+  backToStart();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e){
+  if (mode==='practice') {
+    if (e.key==='ArrowRight') pNext();
+    if (e.key==='ArrowLeft') pSkip();
+    if (e.key===' ') { e.preventDefault(); pToggleRec(); }
+  }
+  if (mode==='mock') {
+    if (e.key==='ArrowRight') mNext();
+    if (e.key==='ArrowLeft') mSkip();
+    if (e.key===' ') { e.preventDefault(); mToggleRec(); }
+    if (e.key==='Escape') { document.getElementById('mAnsOverlay').classList.remove('show'); }
+  }
 });
 </script>
 </body>
