@@ -3369,6 +3369,12 @@ function toggleSidebar() {
 }
 
 function toggleSyncPanel() {
+  // If token exists but not connected, connect directly instead of showing panel
+  if (cloudCfg.token && !cloudCfg.snippetId) {
+    document.getElementById('githubToken').value = cloudCfg.token || '';
+    cloudConnect();
+    return;
+  }
   var p = document.getElementById('syncPanel');
   p.style.display = p.style.display === 'none' ? 'block' : 'none';
   if (p.style.display === 'block') {
