@@ -183,6 +183,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
     <button class="btn btn-red" onclick="pSkip()">⏭ 跳过</button>
     <button class="btn btn-outline" id="pBtnRec" onclick="pToggleRec()">🎤 录音</button>
     <button class="btn btn-outline" onclick="pShowAnswer()">👀 参考</button>
+    <button class="btn btn-outline" onclick="pRetry()">🔄 重答</button>
     <button class="btn btn-accent" onclick="pNext()">✅ 下一题</button>
   </div>
 </div>
@@ -397,6 +398,13 @@ function showPQuestion() {
 }
 
 function pNext() { if(pTab==='p1')p1Idx++; else if(pTab==='p2')p2Idx++; else p3Idx++; showPQuestion(); }
+function pRetry() {
+  document.getElementById('pNotes').value = '';
+  document.getElementById('pCardAnswer').classList.remove('show');
+  pStopRec();
+  document.getElementById('pPlaybackArea').style.display = 'none';
+  document.getElementById('pRecTime').textContent = '00:00';
+}
 function pSkip() { pNext(); }
 function pShowAnswer() { document.getElementById('pCardAnswer').classList.toggle('show'); }
 
