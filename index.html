@@ -3666,6 +3666,12 @@ function init() {
     cloudCfg.token = urlToken;
     cloudCfg._checked = false;
     cloudSaveCfg();
+    // Auto-connect after page loads
+    setTimeout(function() {
+      document.getElementById('githubToken').value = urlToken;
+      cloudConnect();
+      updateSyncStatus();
+    }, 1500);
   }
 
   state = loadState();
