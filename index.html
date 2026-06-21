@@ -387,7 +387,8 @@ body {
       <button class="btn btn-accent" style="margin-top:4px;width:100%;font-size:10px;padding:6px" onclick="cloudSyncNow()">☁️ 立即同步到云端</button>
       <div id="syncMsg" style="font-size:10px;color:var(--green);margin-top:3px;text-align:center"></div>
     </div>
-    <button class="btn btn-outline" style="margin-top:8px;width:100%;font-size:11px;padding:8px" onclick="resetAll()">🔄 重置进度</button>
+    <button class="btn btn-outline" style="margin-top:4px;width:100%;font-size:10px;padding:6px" onclick="resetSpelling()">🔤 重置拼写</button>
+    <button class="btn btn-outline" style="margin-top:4px;width:100%;font-size:11px;padding:8px" onclick="resetAll()">🔄 全部重置</button>
   </div>
 </div><!-- /app -->
 <script>
@@ -3563,6 +3564,34 @@ init = function() {
     setTimeout(function() { cloudPull(); }, 2000);
   }
 };
+
+function resetSpelling() {
+  if (confirm('确定只重置拼写模块吗？\n\n闪卡进度不受影响。\n\n拼写的已答对、错词、每日进度将被清空。')) {
+    state.spKnownWords = {};
+    state.spWrongWords = {};
+    state.spLearnedHistory = {};
+    state.spDailyWords = null;
+    state.spDailyPos = 0;
+    state.spDailyMastered = {};
+    state.spDailyShown = {};
+    state.spDailyFirstDone = false;
+    state.spDailyTarget = 0;
+    state.spDailyStats = [];
+    spDailyWords = null;
+    spDailyPos = 0;
+    spDailyMastered = {};
+    spDailyShown = {};
+    spDailyFirstDone = false;
+    spDailyTarget = 0;
+    spTodayDone = false;
+    spellScore = 0;
+    spellTotal = 0;
+    state.score = 0;
+    state.spTotal = 0;
+    saveState();
+    location.reload();
+  }
+}
 
 function resetAll() {
   if (confirm('⚠️ 确定要清除所有学习进度并重新开始吗？\n\n这将清空：\n· 已学单词记录\n· 错词本\n· 每日学习进度\n· 日历打卡记录\n\n此操作不可恢复！')) {
