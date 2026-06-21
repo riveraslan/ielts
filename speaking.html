@@ -522,12 +522,10 @@ document.addEventListener('keydown', function(e){
   if (mode==='practice') {
     if (e.key==='ArrowRight') pNext();
     if (e.key==='ArrowLeft') pSkip();
-    if (e.key===' ') { e.preventDefault(); pToggleRec(); }
   }
   if (mode==='mock') {
     if (e.key==='ArrowRight') mNext();
     if (e.key==='ArrowLeft') mSkip();
-    if (e.key===' ') { e.preventDefault(); mToggleRec(); }
     if (e.key==='Escape') { document.getElementById('mAnsOverlay').classList.remove('show'); }
   }
 });
