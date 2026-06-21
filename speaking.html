@@ -349,7 +349,9 @@ function getPFiltered() {
 }
 
 function showPQuestion() {
-  stopPTimer(); pStopRec();
+  stopPTimer();
+  if (pMediaRecorder && pMediaRecorder.state === 'recording') pStopRec();
+  else { document.getElementById('pPlaybackArea').style.display = 'none'; document.getElementById('pRecAudio').src = ''; }
   var pool = getPFiltered();
   var idx, shuf;
   if (pTab === 'p1') { idx = p1Idx; shuf = p1Shuffled; }
@@ -388,7 +390,6 @@ function showPQuestion() {
   document.getElementById('pTimerBlock').style.display = 'none';
   document.getElementById('pCardSample').textContent = item.sample || '';
   document.getElementById('pCardAnswer').classList.remove('show');
-  document.getElementById('pPlaybackArea').style.display = 'none';
   document.getElementById('pRecTime').textContent = '00:00';
   var total = pool.length;
   document.getElementById('pProgLabel').textContent = (idx+1)+' / '+total;
@@ -416,7 +417,7 @@ function pToggleRec() {
       document.getElementById('pRecDot').classList.remove('on');
       document.getElementById('pBtnRec').textContent='🎤 录音';
     };
-    pMediaRecorder.start(); var start=Date.now();
+    pMediaRecorder.start(100); var start=Date.now();
     document.getElementById('pRecDot').classList.add('on');
     document.getElementById('pBtnRec').textContent='⏹ 停止';
     pRecInterval=setInterval(function(){
