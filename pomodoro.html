@@ -92,11 +92,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="subtitle">专注计时 · 待办清单 · 白噪音</div>
   </div>
 
-  <!-- Mode tabs -->
+  <!-- Timer mode -->
   <div class="mode-tabs">
-    <button class="mode-btn active" onclick="setMode('focus')">🍅 专注 25</button>
-    <button class="mode-btn" onclick="setMode('break')">☕ 休息 5</button>
-    <button class="mode-btn" onclick="setMode('longbreak')">🌴 长休 15</button>
+    <button class="mode-btn active" onclick="setTimerType('countdown')">⏬ 倒计时</button>
+    <button class="mode-btn" onclick="setTimerType('countup')">⏫ 正计时</button>
+    <span style="display:flex;align-items:center;gap:6px;margin-left:4px">
+      <input type="number" id="customMinutes" value="25" min="1" max="180" style="width:48px;padding:6px;background:var(--surface);border:1px solid var(--surface2);border-radius:8px;color:var(--text);text-align:center;font-size:14px" onchange="updateCustomTime()">
+      <span style="font-size:13px;color:var(--text2)">分钟</span>
+    </span>
   </div>
 
   <!-- Timer -->
@@ -162,29 +165,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <script>
 // ===== STATE =====
 const STORAGE_KEY = 'pomodoro_state';
-let timerMode = 'focus'; // focus | break | longbreak
-let timeLeft = 25 * 60;
-let totalSeconds = 25 * 60;
+let timerType = 'countdown';
 let timerRunning = false;
 let timerInterval = null;
+let timeElapsed = 0;
+let timeRemaining = 25*60;
+let countdownTotal = 25*60;
 let activeTaskId = null;
 let noiseType = 'none';
 let audioCtx = null;
 let noiseNode = null;
 
-// Settings
-const MODES = {
-  focus: { label: '专注', time: 25*60, icon: '🍅', color: 'red' },
-  break: { label: '休息', time: 5*60, icon: '☕', color: 'green' },
-  longbreak: { label: '长休', time: 15*60, icon: '🌴', color: 'green' }
-};
-
 function defaultState() {
-  return {
-    todos: [],
-    dailyStats: {},  // { '2026-06-21': { pomos: 5, minutes: 125 } }
-    activeTaskId: null,
-  };
+  return { todos: [], dailyStats: {}, activeTaskId: null };
 }
 
 let state = defaultState();
@@ -204,66 +197,62 @@ function getToday() {
 }
 
 // ===== TIMER =====
-function setMode(mode) {
-  timerMode = mode;
-  var m = MODES[mode];
-  timeLeft = m.time;
-  totalSeconds = m.time;
-  updateDisplay();
-  document.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.remove('active','break-mode'); });
-  document.querySelector('.mode-btn[onclick*="'+mode+'"]').classList.add('active');
-  if (mode !== 'focus') document.querySelector('.mode-btn[onclick*="'+mode+'"]').classList.add('break-mode');
-  var ring = document.getElementById('ringFg');
-  ring.classList.toggle('break', mode !== 'focus');
+function setTimerType(type) {
+  timerType = type;
+  document.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelector('.mode-btn[onclick*="'+type+'"]').classList.add('active');
   resetTimer();
 }
 
+function updateCustomTime() {
+  var mins = parseInt(document.getElementById('customMinutes').value) || 25;
+  if (mins < 1) mins = 1;
+  if (mins > 180) mins = 180;
+  document.getElementById('customMinutes').value = mins;
+  countdownTotal = mins * 60;
+  timeRemaining = countdownTotal;
+  updateDisplay();
+}
+
 function updateDisplay() {
-  var m = Math.floor(timeLeft / 60);
-  var s = timeLeft % 60;
-  document.getElementById('timerDisplay').textContent = m + ':' + (s<10?'0':'') + s;
-
-  var mode = MODES[timerMode];
-  if (timerRunning) {
-    document.getElementById('timerLabel').textContent = mode.icon + ' ' + mode.label + '中…';
+  var m, s;
+  if (timerType === 'countup') {
+    m = Math.floor(timeElapsed / 60);
+    s = timeElapsed % 60;
+    document.getElementById('timerDisplay').textContent = m + ':' + (s<10?'0':'') + s;
+    document.getElementById('timerLabel').textContent = timerRunning ? '⏫ 计时中…' : '准备开始';
+    document.getElementById('ringFg').setAttribute('stroke-dashoffset', '0');
+    document.getElementById('ringFg').classList.add('break');
   } else {
-    document.getElementById('timerLabel').textContent = '准备开始';
+    m = Math.floor(timeRemaining / 60);
+    s = timeRemaining % 60;
+    document.getElementById('timerDisplay').textContent = m + ':' + (s<10?'0':'') + s;
+    document.getElementById('timerLabel').textContent = timerRunning ? '⏬ 倒计时中…' : '准备开始';
+    var circumference = 565.5;
+    var pct = countdownTotal > 0 ? timeRemaining / countdownTotal : 0;
+    document.getElementById('ringFg').setAttribute('stroke-dashoffset', circumference * (1 - pct));
+    document.getElementById('ringFg').classList.remove('break');
   }
-
-  // Update ring
-  var circumference = 565.5;
-  var progress = 1 - (timeLeft / totalSeconds);
-  var offset = circumference * (1 - progress);
-  document.getElementById('ringFg').setAttribute('stroke-dashoffset', offset);
-
-  // Update sessions display
   var today = getToday();
-  var ds = state.dailyStats[today] || { pomos: 0 };
+  var ds = state.dailyStats[today] || { pomos: 0, minutes: 0 };
   document.getElementById('timerSessions').textContent = '🍅 × ' + ds.pomos + ' 今日';
 }
 
 function toggleTimer() {
-  if (timerRunning) {
-    pauseTimer();
-  } else {
-    startTimer();
-  }
+  if (timerRunning) { pauseTimer(); }
+  else { startTimer(); }
 }
 
 function startTimer() {
   timerRunning = true;
   document.getElementById('btnStart').textContent = '⏸ 暂停';
   document.getElementById('btnStart').classList.add('running');
-  document.getElementById('timerLabel').textContent = MODES[timerMode].icon + ' ' + MODES[timerMode].label + '中…';
-
   if (noiseType !== 'none') playNoise();
-
   timerInterval = setInterval(function() {
-    timeLeft--;
+    if (timerType === 'countup') { timeElapsed++; }
+    else { timeRemaining--; }
     updateDisplay();
-    if (timeLeft <= 0) {
-      sessionComplete();
-    }
+    if (timerType === 'countdown' && timeRemaining <= 0) { sessionComplete(); }
   }, 1000);
 }
 
@@ -278,62 +267,35 @@ function pauseTimer() {
 
 function resetTimer() {
   pauseTimer();
-  timeLeft = MODES[timerMode].time;
-  totalSeconds = timeLeft;
+  if (timerType === 'countup') { timeElapsed = 0; }
+  else { updateCustomTime(); }
   document.getElementById('btnStart').textContent = '▶ 开始';
   document.getElementById('btnStart').classList.remove('running');
   updateDisplay();
   stopNoise();
 }
 
-function skipSession() {
-  if (timerRunning && timerMode === 'focus') {
-    // Don't count skipped sessions
-  }
-  resetTimer();
-}
+function skipSession() { resetTimer(); }
 
 function sessionComplete() {
   clearInterval(timerInterval); timerInterval = null;
-  timerRunning = false;
-  stopNoise();
-
+  timerRunning = false; stopNoise();
   var today = getToday();
   if (!state.dailyStats[today]) state.dailyStats[today] = { pomos: 0, minutes: 0 };
-
-  if (timerMode === 'focus') {
+  if (timerType === 'countdown') {
+    var mins = Math.floor(countdownTotal / 60);
     state.dailyStats[today].pomos++;
-    state.dailyStats[today].minutes += Math.floor(MODES.focus.time / 60);
-
-    // Increment pomo count on active task
+    state.dailyStats[today].minutes += mins;
     if (activeTaskId !== null) {
       for (var i = 0; i < state.todos.length; i++) {
-        if (state.todos[i].id === activeTaskId) {
-          state.todos[i].pomos = (state.todos[i].pomos || 0) + 1;
-          break;
-        }
+        if (state.todos[i].id === activeTaskId) { state.todos[i].pomos = (state.todos[i].pomos || 0) + 1; break; }
       }
     }
-
-    // Notification
-    showNotification('🍅 番茄完成！', '专注了 ' + Math.floor(MODES.focus.time/60) + ' 分钟，休息一下吧');
-    try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+AgH9/f3+Af39/gIB/f3+Af39/gIB/f3+Af39/gIB/f39/gH9/f4CAf39/f4B/f3+AgH9/f3+Af39/gIB/f3+Af39/gID/f3+Af/9/gIB/f/9/gH9//4CAf3//gH9//4CAf///gH///4CA////gP///w==').play(); } catch(e) {}
-
-    // Auto-switch to break
-    setMode('break');
-  } else {
-    showNotification('⏰ 休息结束！', '准备好开始下一个番茄了吗？');
-    setMode('focus');
+    showNotification('⏰ 时间到！', '完成了 ' + mins + ' 分钟专注');
   }
-
-  timeLeft = MODES[timerMode].time;
-  totalSeconds = timeLeft;
   document.getElementById('btnStart').textContent = '▶ 开始';
   document.getElementById('btnStart').classList.remove('running');
-  updateDisplay();
-  renderStats();
-  renderTodos();
-  saveState();
+  resetTimer(); renderStats(); renderTodos(); saveState();
 }
 
 function showNotification(title, body) {
@@ -341,7 +303,6 @@ function showNotification(title, body) {
   banner.textContent = title + ' ' + body;
   banner.style.display = 'block';
   setTimeout(function() { banner.style.display = 'none'; }, 4000);
-
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, { body: body });
   } else if ('Notification' in window && Notification.permission !== 'denied') {
@@ -349,7 +310,7 @@ function showNotification(title, body) {
   }
 }
 
-// ===== WHITE NOISE =====
+// ===== WHITE NOISE (unchanged) =====
 function setNoise(type) {
   noiseType = type;
   document.querySelectorAll('.noise-chip').forEach(function(c){ c.classList.remove('active'); });
@@ -366,44 +327,26 @@ function playNoise() {
     var bufferSize = 2 * audioCtx.sampleRate;
     var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
     var data = buffer.getChannelData(0);
-
     switch(noiseType) {
       case 'rain':
-        for (var i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1;
-          if (i > 1) data[i] = data[i] * 0.3 + data[i-1] * 0.7; // smooth
-        }
+        for (var i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; if (i > 1) data[i] = data[i] * 0.3 + data[i-1] * 0.7; }
         break;
       case 'cafe':
-        for (var i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * 0.15;
-          if (Math.random() < 0.001) data[i] += (Math.random() - 0.5) * 0.3; // occasional clinks
-        }
+        for (var i = 0; i < bufferSize; i++) { data[i] = (Math.random() * 2 - 1) * 0.15; if (Math.random() < 0.001) data[i] += (Math.random() - 0.5) * 0.3; }
         break;
       case 'forest':
-        for (var i = 0; i < bufferSize; i++) {
-          data[i] = Math.sin(i * 0.0001) * 0.1 + (Math.random() * 2 - 1) * 0.05;
-          if (Math.random() < 0.0005) data[i] += Math.sin(i * 0.05) * 0.2; // bird chirps
-        }
+        for (var i = 0; i < bufferSize; i++) { data[i] = Math.sin(i * 0.0001) * 0.1 + (Math.random() * 2 - 1) * 0.05; if (Math.random() < 0.0005) data[i] += Math.sin(i * 0.05) * 0.2; }
         break;
       case 'ocean':
-        for (var i = 0; i < bufferSize; i++) {
-          data[i] = Math.sin(i * 0.0003) * 0.3; // slow wave
-          data[i] += (Math.random() * 2 - 1) * 0.1;
-          data[i] = data[i] * (0.5 + 0.5 * Math.sin(i * 0.00005)); // amplitude modulation
-        }
+        for (var i = 0; i < bufferSize; i++) { data[i] = Math.sin(i * 0.0003) * 0.3 + (Math.random() * 2 - 1) * 0.1; data[i] = data[i] * (0.5 + 0.5 * Math.sin(i * 0.00005)); }
         break;
     }
-
     noiseNode = audioCtx.createBufferSource();
-    noiseNode.buffer = buffer;
-    noiseNode.loop = true;
-    var gain = audioCtx.createGain();
-    gain.gain.value = 0.3;
-    noiseNode.connect(gain);
-    gain.connect(audioCtx.destination);
+    noiseNode.buffer = buffer; noiseNode.loop = true;
+    var gain = audioCtx.createGain(); gain.gain.value = 0.3;
+    noiseNode.connect(gain); gain.connect(audioCtx.destination);
     noiseNode.start();
-  } catch(e) { /* audio not supported */ }
+  } catch(e) {}
 }
 
 function stopNoise() {
@@ -411,37 +354,30 @@ function stopNoise() {
   if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
 }
 
-// ===== TODO LIST =====
+// ===== TODO LIST (unchanged) =====
 function addTodo() {
   var input = document.getElementById('todoInput');
   var text = input.value.trim();
   if (!text) return;
   state.todos.push({ id: Date.now(), text: text, done: false, pomos: 0 });
-  input.value = '';
-  saveState();
-  renderTodos();
+  input.value = ''; saveState(); renderTodos();
 }
 
 function toggleTodo(id) {
-  for (var i = 0; i < state.todos.length; i++) {
-    if (state.todos[i].id === id) { state.todos[i].done = !state.todos[i].done; break; }
-  }
-  saveState();
-  renderTodos();
+  for (var i = 0; i < state.todos.length; i++) { if (state.todos[i].id === id) { state.todos[i].done = !state.todos[i].done; break; } }
+  saveState(); renderTodos();
 }
 
 function deleteTodo(id) {
   state.todos = state.todos.filter(function(t){ return t.id !== id; });
   if (activeTaskId === id) activeTaskId = null;
-  saveState();
-  renderTodos();
+  saveState(); renderTodos();
 }
 
 function setActiveTask(id) {
   activeTaskId = (activeTaskId === id) ? null : id;
   document.getElementById('timerLabel').textContent = activeTaskId ? '🎯 专注中' : '准备开始';
-  saveState();
-  renderTodos();
+  saveState(); renderTodos();
 }
 
 function renderTodos() {
@@ -456,8 +392,7 @@ function renderTodos() {
       '<div class="todo-check'+(t.done?' done':'')+'" onclick="event.stopPropagation();toggleTodo('+t.id+')">'+(t.done?'✓':'')+'</div>'+
       '<span class="todo-text'+(t.done?' done':'')+'">'+t.text+'</span>'+
       (t.pomos>0?'<span class="todo-pomos">🍅×'+t.pomos+'</span>':'')+
-      '<button class="todo-del" onclick="event.stopPropagation();deleteTodo('+t.id+')">×</button>'+
-      '</li>';
+      '<button class="todo-del" onclick="event.stopPropagation();deleteTodo('+t.id+')">×</button></li>';
   }).join('');
 }
 
@@ -467,36 +402,23 @@ function renderStats() {
   var ds = state.dailyStats[today] || { pomos: 0, minutes: 0 };
   document.getElementById('statPomos').textContent = ds.pomos;
   document.getElementById('statMinutes').textContent = ds.minutes;
-
-  // Calculate streak
-  var streak = 0;
-  var d = new Date();
+  var streak = 0, d = new Date();
   while (true) {
     var dateStr = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    if (state.dailyStats[dateStr] && state.dailyStats[dateStr].pomos > 0) {
-      streak++;
-      d.setDate(d.getDate() - 1);
-    } else {
-      break;
-    }
+    if (state.dailyStats[dateStr] && state.dailyStats[dateStr].pomos > 0) { streak++; d.setDate(d.getDate() - 1); }
+    else break;
   }
   document.getElementById('statStreak').textContent = streak;
 }
 
-// ===== KEYBOARD =====
 document.addEventListener('keydown', function(e) {
   if (e.key === ' ' && e.target === document.body) { e.preventDefault(); toggleTimer(); }
 });
 
-// ===== INIT =====
 function init() {
   activeTaskId = state.activeTaskId || null;
-  updateDisplay();
-  renderStats();
-  renderTodos();
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
+  updateCustomTime(); updateDisplay(); renderStats(); renderTodos();
+  if ('Notification' in window && Notification.permission === 'default') { Notification.requestPermission(); }
 }
 init();
 </script>
