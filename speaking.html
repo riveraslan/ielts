@@ -233,12 +233,6 @@ let audioChunks = [];
 let recording = false;
 
 // ========== MODE SELECT ==========
-function selectMode(m) {
-  mode = m;
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-}
-
 // ========== START TEST ==========
 function startTest() {
   document.getElementById('startScreen').style.display = 'none';
@@ -404,7 +398,15 @@ function startRec() {
     recording = true;
     document.getElementById('btnRec').classList.add('active');
     document.getElementById('selfView').classList.add('recording');
-  }).catch(function(){});
+  }).catch(function(e){
+    alert('无法访问麦克风。\n\n请检查：\n1. 浏览器是否允许麦克风权限\n2. 是否使用 HTTPS 打开（非 file://）\n3. 系统麦克风是否可用\n\n错误: ' + (e.message || '未知'));
+  });
+}
+
+function selectMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelector('.mode-btn[onclick*="'+m+'"]').classList.add('active');
 }
 
 function stopRec() {
