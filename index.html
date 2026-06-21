@@ -2763,8 +2763,8 @@ function renderChart() {
 
   // Show last 10 days
   var data = stats.slice(-10);
-  if (data.length < 2) {
-    container.innerHTML = '<text x="65" y="45" text-anchor="middle" fill="#94a3b8" font-size="11">数据不足</text>';
+  if (data.length < 1) {
+    container.innerHTML = '<text x="65" y="45" text-anchor="middle" fill="#94a3b8" font-size="11">暂无数据</text>';
     return;
   }
 
@@ -2786,9 +2786,11 @@ function renderChart() {
 
   // Build points
   var points = '';
+  var divisor = data.length > 1 ? (data.length - 1) : 1;
+  var range = maxPct > minPct ? (maxPct - minPct) : 10;
   for (var i = 0; i < data.length; i++) {
-    var x = padL + (i / (data.length - 1)) * plotW;
-    var y = padT + plotH - ((data[i].pct - minPct) / (maxPct - minPct)) * plotH;
+    var x = padL + (i / divisor) * plotW;
+    var y = padT + plotH - ((data[i].pct - minPct) / range) * plotH;
     points += x.toFixed(1) + ',' + y.toFixed(1) + ' ';
   }
 
@@ -2801,13 +2803,15 @@ function renderChart() {
     html += '<text x="' + (padL - 3) + '" y="' + (gy + 3) + '" text-anchor="end" fill="#64748b" font-size="8">' + gv + '%</text>';
   }
 
-  // Line
-  html += '<polyline points="' + points + '" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+  // Line (only if 2+ points)
+  if (data.length >= 2) {
+    html += '<polyline points="' + points + '" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
 
   // Dots + date labels
   for (var i = 0; i < data.length; i++) {
-    var x = padL + (i / (data.length - 1)) * plotW;
-    var y = padT + plotH - ((data[i].pct - minPct) / (maxPct - minPct)) * plotH;
+    var x = padL + (i / divisor) * plotW;
+    var y = padT + plotH - ((data[i].pct - minPct) / range) * plotH;
     var isLast = (i === data.length - 1);
     html += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (isLast ? 3 : 2) + '" fill="' + (isLast ? '#34d399' : '#38bdf8') + '"/>';
     // Date label every other or last
