@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>番茄钟 · 自律计时</title>
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+  --text: #e2e8f0; --text2: #94a3b8;
+  --red: #ef4444; --red2: #dc2626; --green: #22c55e;
+  --accent: #f59e0b; --radius: 16px; --radius-sm: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; }
+.app { width: 100%; max-width: 520px; padding: 20px 16px 40px; }
+.header { text-align: center; padding: 16px 0 8px; }
+.header h1 { font-size: 26px; font-weight: 700; }
+.header .subtitle { color: var(--text2); font-size: 13px; margin-top: 4px; }
+
+/* Timer Ring */
+.timer-wrap { display: flex; justify-content: center; margin: 20px 0; }
+.timer-ring { position: relative; width: 260px; height: 260px; }
+.timer-ring svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+.ring-fg { fill: none; stroke: var(--red); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .3s linear; }
+.ring-fg.break { stroke: var(--green); }
+.timer-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.timer-time { font-size: 56px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.timer-label { font-size: 14px; color: var(--text2); margin-top: 2px; }
+.timer-sessions { font-size: 13px; color: var(--accent); margin-top: 6px; }
+
+/* Controls */
+.controls { display: flex; gap: 12px; justify-content: center; margin: 12px 0; }
+.ctrl-btn { padding: 12px 28px; border: none; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .2s; }
+.ctrl-btn:active { transform: scale(.95); }
+.btn-start { background: var(--red); color: #fff; }
+.btn-start.running { background: var(--surface2); color: var(--text); }
+.btn-reset { background: transparent; border: 1px solid var(--surface2); color: var(--text2); }
+.btn-skip { background: transparent; border: 1px solid var(--surface2); color: var(--accent); font-size: 13px; }
+
+/* Mode selector */
+.mode-tabs { display: flex; gap: 6px; justify-content: center; margin: 12px 0; }
+.mode-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid var(--surface2); background: transparent; color: var(--text2); cursor: pointer; font-size: 13px; transition: all .2s; }
+.mode-btn.active { background: var(--red); border-color: var(--red); color: #fff; }
+.mode-btn.active.break-mode { background: var(--green); border-color: var(--green); }
+
+/* Stats */
+.stats-row { display: flex; gap: 8px; margin: 16px 0; }
+.stat-card { flex:1; background: var(--surface); border-radius: var(--radius-sm); padding: 14px 10px; text-align: center; }
+.stat-card .val { font-size: 22px; font-weight: 700; }
+.stat-card .lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.stat-card .val.red { color: var(--red); }
+.stat-card .val.green { color: var(--green); }
+
+/* Todo list */
+.section-title { font-size: 15px; font-weight: 600; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
+.todo-input-wrap { display: flex; gap: 8px; margin-bottom: 10px; }
+.todo-input { flex:1; padding: 10px 14px; background: var(--surface); border: 1px solid var(--surface2); border-radius: 20px; color: var(--text); font-size: 14px; outline: none; }
+.todo-input:focus { border-color: var(--accent); }
+.todo-add { padding: 10px 18px; background: var(--accent); color: #000; border: none; border-radius: 20px; font-weight: 600; cursor: pointer; font-size: 14px; }
+.todo-list { list-style: none; }
+.todo-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface); border-radius: var(--radius-sm); margin-bottom: 6px; transition: all .2s; }
+.todo-item.active-task { border: 1px solid var(--accent); background: rgba(245,158,11,.08); }
+.todo-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--surface2); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; transition: all .2s; }
+.todo-check.done { background: var(--green); border-color: var(--green); color: #fff; }
+.todo-text { flex:1; font-size: 14px; }
+.todo-text.done { text-decoration: line-through; color: var(--text2); }
+.todo-pomos { font-size: 12px; color: var(--accent); }
+.todo-del { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 16px; padding: 2px 6px; }
+
+/* White noise */
+.noise-bar { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.noise-chip { padding: 6px 14px; border-radius: 16px; border: 1px solid var(--surface2); background: transparent; color: var(--text2); cursor: pointer; font-size: 12px; }
+.noise-chip.active { border-color: var(--accent); color: var(--accent); }
+
+/* Notification */
+.notify-banner { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--red); color: #fff; padding: 12px 24px; border-radius: 25px; font-weight: 600; z-index: 999; display: none; animation: bounceIn .4s ease-out; }
+@keyframes bounceIn { 0%{transform:translateX(-50%) scale(.5);opacity:0} 60%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
+
+@media (max-width: 480px) {
+  .timer-ring { width: 220px; height: 220px; }
+  .timer-time { font-size: 46px; }
+  .ctrl-btn { padding: 10px 22px; font-size: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>🍅 番茄钟</h1>
+    <div class="subtitle">专注计时 · 待办清单 · 白噪音</div>
+  </div>
+
+  <!-- Mode tabs -->
+  <div class="mode-tabs">
+    <button class="mode-btn active" onclick="setMode('focus')">🍅 专注 25</button>
+    <button class="mode-btn" onclick="setMode('break')">☕ 休息 5</button>
+    <button class="mode-btn" onclick="setMode('longbreak')">🌴 长休 15</button>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-wrap">
+    <div class="timer-ring">
+      <svg viewBox="0 0 200 200">
+        <circle class="ring-bg" cx="100" cy="100" r="90"/>
+        <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="90" stroke-dasharray="565.5" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-center">
+        <div class="timer-time" id="timerDisplay">25:00</div>
+        <div class="timer-label" id="timerLabel">准备开始</div>
+        <div class="timer-sessions" id="timerSessions"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="ctrl-btn btn-start" id="btnStart" onclick="toggleTimer()">▶ 开始</button>
+    <button class="ctrl-btn btn-reset" onclick="resetTimer()">↺</button>
+    <button class="ctrl-btn btn-skip" onclick="skipSession()">⏭ 跳过</button>
+  </div>
+
+  <!-- Notification banner -->
+  <div class="notify-banner" id="notifyBanner"></div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="val red" id="statPomos">0</div>
+      <div class="lbl">今日番茄</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="statMinutes">0</div>
+      <div class="lbl">今日专注(分)</div>
+    </div>
+    <div class="stat-card">
+      <div class="val green" id="statStreak">0</div>
+      <div class="lbl">连续天数</div>
+    </div>
+  </div>
+
+  <!-- White noise -->
+  <div class="section-title">🔊 白噪音</div>
+  <div class="noise-bar" id="noiseBar">
+    <button class="noise-chip active" onclick="setNoise('none')">🔇 无</button>
+    <button class="noise-chip" onclick="setNoise('rain')">🌧 雨声</button>
+    <button class="noise-chip" onclick="setNoise('cafe')">☕ 咖啡馆</button>
+    <button class="noise-chip" onclick="setNoise('forest')">🌲 森林</button>
+    <button class="noise-chip" onclick="setNoise('ocean')">🌊 海浪</button>
+  </div>
+
+  <!-- Todo List -->
+  <div class="section-title">📋 待办清单 <span style="font-size:12px;color:var(--text2);font-weight:400">（点击任务设为当前专注目标）</span></div>
+  <div class="todo-input-wrap">
+    <input class="todo-input" id="todoInput" placeholder="添加新任务…" onkeydown="if(event.key==='Enter')addTodo()">
+    <button class="todo-add" onclick="addTodo()">+ 添加</button>
+  </div>
+  <ul class="todo-list" id="todoList"></ul>
+</div>
+
+<script>
+// ===== STATE =====
+const STORAGE_KEY = 'pomodoro_state';
+let timerMode = 'focus'; // focus | break | longbreak
+let timeLeft = 25 * 60;
+let totalSeconds = 25 * 60;
+let timerRunning = false;
+let timerInterval = null;
+let activeTaskId = null;
+let noiseType = 'none';
+let audioCtx = null;
+let noiseNode = null;
+
+// Settings
+const MODES = {
+  focus: { label: '专注', time: 25*60, icon: '🍅', color: 'red' },
+  break: { label: '休息', time: 5*60, icon: '☕', color: 'green' },
+  longbreak: { label: '长休', time: 15*60, icon: '🌴', color: 'green' }
+};
+
+function defaultState() {
+  return {
+    todos: [],
+    dailyStats: {},  // { '2026-06-21': { pomos: 5, minutes: 125 } }
+    activeTaskId: null,
+  };
+}
+
+let state = defaultState();
+try {
+  var raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) state = Object.assign(defaultState(), JSON.parse(raw));
+} catch(e) {}
+
+function saveState() {
+  state.activeTaskId = activeTaskId;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function getToday() {
+  var d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+// ===== TIMER =====
+function setMode(mode) {
+  timerMode = mode;
+  var m = MODES[mode];
+  timeLeft = m.time;
+  totalSeconds = m.time;
+  updateDisplay();
+  document.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.remove('active','break-mode'); });
+  document.querySelector('.mode-btn[onclick*="'+mode+'"]').classList.add('active');
+  if (mode !== 'focus') document.querySelector('.mode-btn[onclick*="'+mode+'"]').classList.add('break-mode');
+  var ring = document.getElementById('ringFg');
+  ring.classList.toggle('break', mode !== 'focus');
+  resetTimer();
+}
+
+function updateDisplay() {
+  var m = Math.floor(timeLeft / 60);
+  var s = timeLeft % 60;
+  document.getElementById('timerDisplay').textContent = m + ':' + (s<10?'0':'') + s;
+
+  var mode = MODES[timerMode];
+  if (timerRunning) {
+    document.getElementById('timerLabel').textContent = mode.icon + ' ' + mode.label + '中…';
+  } else {
+    document.getElementById('timerLabel').textContent = '准备开始';
+  }
+
+  // Update ring
+  var circumference = 565.5;
+  var progress = 1 - (timeLeft / totalSeconds);
+  var offset = circumference * (1 - progress);
+  document.getElementById('ringFg').setAttribute('stroke-dashoffset', offset);
+
+  // Update sessions display
+  var today = getToday();
+  var ds = state.dailyStats[today] || { pomos: 0 };
+  document.getElementById('timerSessions').textContent = '🍅 × ' + ds.pomos + ' 今日';
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    pauseTimer();
+  } else {
+    startTimer();
+  }
+}
+
+function startTimer() {
+  timerRunning = true;
+  document.getElementById('btnStart').textContent = '⏸ 暂停';
+  document.getElementById('btnStart').classList.add('running');
+  document.getElementById('timerLabel').textContent = MODES[timerMode].icon + ' ' + MODES[timerMode].label + '中…';
+
+  if (noiseType !== 'none') playNoise();
+
+  timerInterval = setInterval(function() {
+    timeLeft--;
+    updateDisplay();
+    if (timeLeft <= 0) {
+      sessionComplete();
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  timerRunning = false;
+  document.getElementById('btnStart').textContent = '▶ 继续';
+  document.getElementById('btnStart').classList.remove('running');
+  document.getElementById('timerLabel').textContent = '已暂停';
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  stopNoise();
+}
+
+function resetTimer() {
+  pauseTimer();
+  timeLeft = MODES[timerMode].time;
+  totalSeconds = timeLeft;
+  document.getElementById('btnStart').textContent = '▶ 开始';
+  document.getElementById('btnStart').classList.remove('running');
+  updateDisplay();
+  stopNoise();
+}
+
+function skipSession() {
+  if (timerRunning && timerMode === 'focus') {
+    // Don't count skipped sessions
+  }
+  resetTimer();
+}
+
+function sessionComplete() {
+  clearInterval(timerInterval); timerInterval = null;
+  timerRunning = false;
+  stopNoise();
+
+  var today = getToday();
+  if (!state.dailyStats[today]) state.dailyStats[today] = { pomos: 0, minutes: 0 };
+
+  if (timerMode === 'focus') {
+    state.dailyStats[today].pomos++;
+    state.dailyStats[today].minutes += Math.floor(MODES.focus.time / 60);
+
+    // Increment pomo count on active task
+    if (activeTaskId !== null) {
+      for (var i = 0; i < state.todos.length; i++) {
+        if (state.todos[i].id === activeTaskId) {
+          state.todos[i].pomos = (state.todos[i].pomos || 0) + 1;
+          break;
+        }
+      }
+    }
+
+    // Notification
+    showNotification('🍅 番茄完成！', '专注了 ' + Math.floor(MODES.focus.time/60) + ' 分钟，休息一下吧');
+    try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+AgH9/f3+Af39/gIB/f3+Af39/gIB/f3+Af39/gIB/f39/gH9/f4CAf39/f4B/f3+AgH9/f3+Af39/gIB/f3+Af39/gID/f3+Af/9/gIB/f/9/gH9//4CAf3//gH9//4CAf///gH///4CA////gP///w==').play(); } catch(e) {}
+
+    // Auto-switch to break
+    setMode('break');
+  } else {
+    showNotification('⏰ 休息结束！', '准备好开始下一个番茄了吗？');
+    setMode('focus');
+  }
+
+  timeLeft = MODES[timerMode].time;
+  totalSeconds = timeLeft;
+  document.getElementById('btnStart').textContent = '▶ 开始';
+  document.getElementById('btnStart').classList.remove('running');
+  updateDisplay();
+  renderStats();
+  renderTodos();
+  saveState();
+}
+
+function showNotification(title, body) {
+  var banner = document.getElementById('notifyBanner');
+  banner.textContent = title + ' ' + body;
+  banner.style.display = 'block';
+  setTimeout(function() { banner.style.display = 'none'; }, 4000);
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body: body });
+  } else if ('Notification' in window && Notification.permission !== 'denied') {
+    Notification.requestPermission();
+  }
+}
+
+// ===== WHITE NOISE =====
+function setNoise(type) {
+  noiseType = type;
+  document.querySelectorAll('.noise-chip').forEach(function(c){ c.classList.remove('active'); });
+  document.querySelector('.noise-chip[onclick*="'+type+'"]').classList.add('active');
+  if (timerRunning && type !== 'none') playNoise();
+  if (type === 'none') stopNoise();
+}
+
+function playNoise() {
+  if (noiseType === 'none') return;
+  stopNoise();
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var bufferSize = 2 * audioCtx.sampleRate;
+    var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    var data = buffer.getChannelData(0);
+
+    switch(noiseType) {
+      case 'rain':
+        for (var i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+          if (i > 1) data[i] = data[i] * 0.3 + data[i-1] * 0.7; // smooth
+        }
+        break;
+      case 'cafe':
+        for (var i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * 0.15;
+          if (Math.random() < 0.001) data[i] += (Math.random() - 0.5) * 0.3; // occasional clinks
+        }
+        break;
+      case 'forest':
+        for (var i = 0; i < bufferSize; i++) {
+          data[i] = Math.sin(i * 0.0001) * 0.1 + (Math.random() * 2 - 1) * 0.05;
+          if (Math.random() < 0.0005) data[i] += Math.sin(i * 0.05) * 0.2; // bird chirps
+        }
+        break;
+      case 'ocean':
+        for (var i = 0; i < bufferSize; i++) {
+          data[i] = Math.sin(i * 0.0003) * 0.3; // slow wave
+          data[i] += (Math.random() * 2 - 1) * 0.1;
+          data[i] = data[i] * (0.5 + 0.5 * Math.sin(i * 0.00005)); // amplitude modulation
+        }
+        break;
+    }
+
+    noiseNode = audioCtx.createBufferSource();
+    noiseNode.buffer = buffer;
+    noiseNode.loop = true;
+    var gain = audioCtx.createGain();
+    gain.gain.value = 0.3;
+    noiseNode.connect(gain);
+    gain.connect(audioCtx.destination);
+    noiseNode.start();
+  } catch(e) { /* audio not supported */ }
+}
+
+function stopNoise() {
+  if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode = null; }
+  if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
+}
+
+// ===== TODO LIST =====
+function addTodo() {
+  var input = document.getElementById('todoInput');
+  var text = input.value.trim();
+  if (!text) return;
+  state.todos.push({ id: Date.now(), text: text, done: false, pomos: 0 });
+  input.value = '';
+  saveState();
+  renderTodos();
+}
+
+function toggleTodo(id) {
+  for (var i = 0; i < state.todos.length; i++) {
+    if (state.todos[i].id === id) { state.todos[i].done = !state.todos[i].done; break; }
+  }
+  saveState();
+  renderTodos();
+}
+
+function deleteTodo(id) {
+  state.todos = state.todos.filter(function(t){ return t.id !== id; });
+  if (activeTaskId === id) activeTaskId = null;
+  saveState();
+  renderTodos();
+}
+
+function setActiveTask(id) {
+  activeTaskId = (activeTaskId === id) ? null : id;
+  document.getElementById('timerLabel').textContent = activeTaskId ? '🎯 专注中' : '准备开始';
+  saveState();
+  renderTodos();
+}
+
+function renderTodos() {
+  var list = document.getElementById('todoList');
+  if (state.todos.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text2);padding:20px;font-size:14px">还没有任务，添加一个吧 ✍️</div>';
+    return;
+  }
+  list.innerHTML = state.todos.map(function(t){
+    var isActive = t.id === activeTaskId;
+    return '<li class="todo-item'+(isActive?' active-task':'')+'" onclick="setActiveTask('+t.id+')">'+
+      '<div class="todo-check'+(t.done?' done':'')+'" onclick="event.stopPropagation();toggleTodo('+t.id+')">'+(t.done?'✓':'')+'</div>'+
+      '<span class="todo-text'+(t.done?' done':'')+'">'+t.text+'</span>'+
+      (t.pomos>0?'<span class="todo-pomos">🍅×'+t.pomos+'</span>':'')+
+      '<button class="todo-del" onclick="event.stopPropagation();deleteTodo('+t.id+')">×</button>'+
+      '</li>';
+  }).join('');
+}
+
+// ===== STATS =====
+function renderStats() {
+  var today = getToday();
+  var ds = state.dailyStats[today] || { pomos: 0, minutes: 0 };
+  document.getElementById('statPomos').textContent = ds.pomos;
+  document.getElementById('statMinutes').textContent = ds.minutes;
+
+  // Calculate streak
+  var streak = 0;
+  var d = new Date();
+  while (true) {
+    var dateStr = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if (state.dailyStats[dateStr] && state.dailyStats[dateStr].pomos > 0) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  document.getElementById('statStreak').textContent = streak;
+}
+
+// ===== KEYBOARD =====
+document.addEventListener('keydown', function(e) {
+  if (e.key === ' ' && e.target === document.body) { e.preventDefault(); toggleTimer(); }
+});
+
+// ===== INIT =====
+function init() {
+  activeTaskId = state.activeTaskId || null;
+  updateDisplay();
+  renderStats();
+  renderTodos();
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+init();
+</script>
+</body>
+</html>
