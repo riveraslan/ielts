@@ -344,12 +344,16 @@ function getPFiltered() {
 function showPQuestion() {
   stopPTimer(); pStopRec();
   var pool = getPFiltered();
-  var idxKey = pTab==='p1'?'p1Idx':pTab==='p2'?'p2Idx':'p3Idx';
-  var shufKey = pTab==='p1'?'p1Shuffled':pTab==='p2'?'p2Shuffled':'p3Shuffled';
-  var idx = window[idxKey], shuf = window[shufKey];
+  var idx, shuf;
+  if (pTab === 'p1') { idx = p1Idx; shuf = p1Shuffled; }
+  else if (pTab === 'p2') { idx = p2Idx; shuf = p2Shuffled; }
+  else { idx = p3Idx; shuf = p3Shuffled; }
   if (shuf.length===0 || idx>=shuf.length) {
     shuf = []; for(var i=0;i<pool.length;i++) shuf.push(i);
-    shuffle(shuf); window[shufKey]=shuf; window[idxKey]=0; idx=0;
+    shuffle(shuf);
+    if (pTab === 'p1') { p1Shuffled = shuf; p1Idx = 0; idx = 0; }
+    else if (pTab === 'p2') { p2Shuffled = shuf; p2Idx = 0; idx = 0; }
+    else { p3Shuffled = shuf; p3Idx = 0; idx = 0; }
   }
   var item = pool[shuf[idx]];
   document.getElementById('pCardTitle').textContent = (pTab==='p1'?'💬 Part 1 · ':pTab==='p2'?'📋 Part 2 · ':'🎯 Part 3 · ') + (item.cat||'');
@@ -375,7 +379,7 @@ function showPQuestion() {
   document.getElementById('pProgFill').style.width = ((idx/total)*100)+'%';
 }
 
-function pNext() { var k = pTab==='p1'?'p1Idx':pTab==='p2'?'p2Idx':'p3Idx'; window[k]++; showPQuestion(); }
+function pNext() { if(pTab==='p1')p1Idx++; else if(pTab==='p2')p2Idx++; else p3Idx++; showPQuestion(); }
 function pSkip() { pNext(); }
 function pShowAnswer() { document.getElementById('pCardAnswer').classList.toggle('show'); }
 
