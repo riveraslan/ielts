@@ -402,29 +402,39 @@ function pShowAnswer() { document.getElementById('pCardAnswer').classList.toggle
 
 function pToggleRec() {
   if (pMediaRecorder && pMediaRecorder.state==='recording') { pStopRec(); return; }
-  if (!navigator.mediaDevices) return;
+  if (!navigator.mediaDevices) { alert('浏览器不支持录音'); return; }
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
-    pAudioChunks=[]; pMediaRecorder=new MediaRecorder(s);
-    pMediaRecorder.ondataavailable=function(e){ if(e.data.size>0) pAudioChunks.push(e.data); };
-    pMediaRecorder.onstop=function(){
-      if (pAudioChunks.length === 0) { alert('没有录到声音，请检查麦克风'); return; }
-      var b=new Blob(pAudioChunks,{type:'audio/webm'});
-      var url=URL.createObjectURL(b);
-      var a=document.getElementById('pRecAudio');
+    pAudioChunks=[];
+    // Pick best supported MIME type
+    var mime = 'audio/webm';
+    var types = ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
+    for (var i=0;i<types.length;i++) {
+      if (MediaRecorder.isTypeSupported(types[i])) { mime = types[i]; break; }
+    }
+    pMediaRecorder = new MediaRecorder(s, {mimeType: mime});
+    pMediaRecorder.ondataavailable = function(e){ if(e.data&&e.data.size>0) pAudioChunks.push(e.data); };
+    pMediaRecorder.onstop = function(){
+      if (pAudioChunks.length===0) { alert('未录到声音，请检查麦克风权限'); return; }
+      var mimeType = pMediaRecorder.mimeType || 'audio/webm';
+      var b = new Blob(pAudioChunks, {type: mimeType});
+      var url = URL.createObjectURL(b);
+      var a = document.getElementById('pRecAudio');
       a.src = url;
-      a.load();
-      document.getElementById('pPlaybackArea').style.display='block';
+      a.type = mimeType;
+      a.style.display = 'block';
+      document.getElementById('pPlaybackArea').style.display = 'block';
       document.getElementById('pRecDot').classList.remove('on');
-      document.getElementById('pBtnRec').textContent='🎤 录音';
+      document.getElementById('pBtnRec').textContent = '🎤 录音';
     };
-    pMediaRecorder.start(100); var start=Date.now();
+    pMediaRecorder.start(1000);
+    var start=Date.now();
     document.getElementById('pRecDot').classList.add('on');
     document.getElementById('pBtnRec').textContent='⏹ 停止';
     pRecInterval=setInterval(function(){
       var e=Math.floor((Date.now()-start)/1000), m=Math.floor(e/60), s=e%60;
       document.getElementById('pRecTime').textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
     },200);
-  }).catch(function(e){ alert('无法访问麦克风\n请使用 HTTPS 打开网页\n\n'+e.message); });
+  }).catch(function(e){ alert('无法访问麦克风\n请确认：\n1. 使用 HTTPS 打开\n2. 浏览器允许麦克风权限\n\n错误: '+e.message); });
 }
 
 function pStopRec() {
@@ -510,7 +520,7 @@ function mToggleRec() {
   if (mMediaRecorder && mMediaRecorder.state==='recording') { mStopRec(); return; }
   if (!navigator.mediaDevices) return;
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
-    mAudioChunks=[]; mMediaRecorder=new MediaRecorder(s);
+    mAudioChunks=[]; var mmime="audio/webm";var mtypes=["audio/webm;codecs=opus","audio/webm","audio/mp4"];for(var mi=0;mi<mtypes.length;mi++){if(MediaRecorder.isTypeSupported(mtypes[mi])){mmime=mtypes[mi];break;}} mMediaRecorder=new MediaRecorder(s,{mimeType:mmime});
     mMediaRecorder.ondataavailable=function(e){ if(e.data.size>0) mAudioChunks.push(e.data); };
     mMediaRecorder.onstop=function(){
       var b=new Blob(mAudioChunks,{type:'audio/webm'});
