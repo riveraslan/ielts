@@ -3372,8 +3372,18 @@ function clearWrongBook() {
 
 // ===== Cloud Sync via GitHub Gist =====
 var CLOUD_KEY = 'ielts_cloud_cfg';
+var DEFAULT_CLOUD = {
+  token: '8b8ed4bfc1eaafd0921842082b2aff48',
+  snippetId: 'a0c2violh57ukz1rdxjpw45'
+};
 var cloudCfg = {};
 try { cloudCfg = JSON.parse(localStorage.getItem(CLOUD_KEY)) || {}; } catch(e) {}
+// Auto-fill from defaults so any new device connects immediately
+if (!cloudCfg.token || !cloudCfg.snippetId) {
+  cloudCfg.token = cloudCfg.token || DEFAULT_CLOUD.token;
+  cloudCfg.snippetId = cloudCfg.snippetId || DEFAULT_CLOUD.snippetId;
+  try { localStorage.setItem(CLOUD_KEY, JSON.stringify({token: cloudCfg.token, snippetId: cloudCfg.snippetId})); } catch(e) {}
+}
 
 function cloudSaveCfg() {
   localStorage.setItem(CLOUD_KEY, JSON.stringify(cloudCfg));
