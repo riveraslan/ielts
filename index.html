@@ -3527,8 +3527,8 @@ function cloudPull() {
             location.reload();
             return;
           }
-          // Cloud is from a newer day AND has more progress
-          if (cloudDate > localDate && cloudKnownCount > localKnownCount) {
+          // Cloud has more progress (same day or newer)
+          if (cloudDate >= localDate && cloudKnownCount > localKnownCount) {
             if (confirm('云端有 ' + cloudDate + ' 的学习进度\n\n云端已学: ' + cloudKnownCount + ' 词\n本机已学: ' + localKnownCount + ' 词\n\n是否从云端恢复？')) {
               localStorage.setItem(STORAGE_KEY, JSON.stringify(data.s));
               location.reload();
