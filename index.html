@@ -375,7 +375,7 @@ body {
     </div>
     <div class="side-stat" style="cursor:pointer" onclick="toggleSyncPanel()">
       <div class="val" id="syncStatus" style="font-size:14px">☁️ 未连接</div>
-      <div class="lbl" id="syncStatusLabel">云同步 · 点击设置</div>
+      <div class="lbl">云同步 · 点击设置</div>
     </div>
     <div id="syncPanel" style="display:none;margin-bottom:6px">
       <div style="font-size:10px;color:var(--text2);margin-bottom:4px;line-height:1.4">使用码云 Gitee 同步（国内秒开）：<br>1. 打开 <a href="https://gitee.com/profile/personal_access_tokens" target="_blank" style="color:var(--accent)">gitee.com 创建令牌</a><br>2. 点「生成新令牌」→ 提交<br>3. 复制令牌粘贴到下面</div>
@@ -387,8 +387,7 @@ body {
       <button class="btn btn-accent" style="margin-top:4px;width:100%;font-size:10px;padding:6px" onclick="cloudSyncNow()">☁️ 立即同步到云端</button>
       <div id="syncMsg" style="font-size:10px;color:var(--green);margin-top:3px;text-align:center"></div>
     </div>
-    <button class="btn btn-outline" style="margin-top:4px;width:100%;font-size:10px;padding:6px" onclick="resetSpelling()">🔤 重置拼写</button>
-    <button class="btn btn-outline" style="margin-top:4px;width:100%;font-size:11px;padding:8px" onclick="resetAll()">🔄 全部重置</button>
+    <button class="btn btn-outline" style="margin-top:8px;width:100%;font-size:11px;padding:8px" onclick="resetAll()">🔄 重置进度</button>
   </div>
 </div><!-- /app -->
 <script>
@@ -2364,20 +2363,26 @@ function defaultState() {
     dailyWords: null, dailyPos: 0, dailyMastered: {},
     dailyStats: [],
     spDailyWords: null, spDailyPos: 0, spDailyMastered: {}, spDailyShown: {},
-    spDailyFirstDone: false, spDailyTarget: 0,
+    spDailyFirstDone: false, spDailyTarget: 0, spDailyDate: '',
     spDailyStats: [],
   };
 }
 
 function generateDailyWords() {
   var today = getToday();
-  var history = state.learnedHistory || {};
+  var fcHistory = state.learnedHistory || {};
+  var spHistory = state.spLearnedHistory || {};
+  var seenSet = {};
+  var fcKeys = Object.keys(fcHistory);
+  for (var k = 0; k < fcKeys.length; k++) { seenSet[fcKeys[k]] = true; }
+  var spKeys = Object.keys(spHistory);
+  for (var k = 0; k < spKeys.length; k++) { seenSet[spKeys[k]] = true; }
 
-  // Collect words seen before (any date) and never seen
+  // Collect words seen before (any date, either module) and never seen
   var allIndices = [];
   for (var i = 0; i < VOCAB.length; i++) allIndices.push(i);
 
-  var seenIndices = Object.keys(history).map(Number);
+  var seenIndices = Object.keys(seenSet).map(Number);
   var unseenIndices = allIndices.filter(function(i) { return seenIndices.indexOf(i) === -1; });
 
   // Shuffle helper
@@ -2412,54 +2417,63 @@ function generateDailyWords() {
   state.dailyWords = dailyWords.slice();
   state.dailyPos = 0;
   state.dailyMastered = {};
+
+  // Share same word set with spelling module
+  spDailyWords = dailyWords.slice();
+  spDailyPos = 0;
+  spDailyMastered = {};
+  spDailyShown = {};
+  spDailyFirstDone = false;
+  spDailyTarget = dailyTarget;
+  spTodayDone = false;
+  state.spDailyDate = today;
+  state.spDailyWords = spDailyWords.slice();
+  state.spDailyPos = 0;
+  state.spDailyMastered = {};
+  state.spDailyShown = {};
+  state.spDailyFirstDone = false;
+  state.spDailyTarget = spDailyTarget;
+
   saveState();
 
   return dailyWords.length;
 }
 
 // ===== Spelling daily words =====
-function generateSpDailyWords() {
-  var today = getToday();
-  var history = state.spLearnedHistory || {};
-  var allIndices = [];
-  for (var i = 0; i < VOCAB.length; i++) allIndices.push(i);
-  var seenIndices = Object.keys(history).map(Number);
-  var unseenIndices = allIndices.filter(function(i) { return seenIndices.indexOf(i) === -1; });
-  function shuffle(arr) {
-    var a = arr.slice();
-    for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
-    }
-    return a;
-  }
-  var newCount = Math.min(30, unseenIndices.length);
-  var reviewCount = Math.min(15, seenIndices.length);
-  var combined = shuffle(unseenIndices).slice(0, newCount).concat(shuffle(seenIndices).slice(0, reviewCount));
-  spDailyWords = shuffle(combined);
-  spDailyPos = 0; spDailyMastered = {}; spDailyShown = {};
-  spDailyFirstDone = false; spDailyTarget = combined.length; spTodayDone = false;
-  state.lastDate = today;
-  state.spDailyWords = spDailyWords.slice(); state.spDailyPos = 0;
-  state.spDailyMastered = {}; state.spDailyShown = {};
-  state.spDailyFirstDone = false; state.spDailyTarget = spDailyTarget;
-  saveState();
-  return spDailyWords.length;
-}
-
 function checkSpDailyReset() {
   var today = getToday();
-  // Auto-fix: if no spelling history but daily target > 30, force regenerate
-  var spHistoryEmpty = Object.keys(state.spLearnedHistory || {}).length === 0;
-  if (state.lastDate !== today || !state.spDailyWords || state.spDailyWords.length === 0 || (spHistoryEmpty && (state.spDailyTarget || 0) > 30)) {
-    generateSpDailyWords();
+  // Ensure daily words are generated first (if not already)
+  if (state.lastDate !== today || !state.dailyWords || state.dailyWords.length === 0) {
+    checkDailyReset();
+  }
+  // Detect genuine new day: spDailyDate exists AND differs from today.
+  // If spDailyDate is empty (old data / first load), treat as same-day to preserve progress.
+  var isNewDay = !!(state.spDailyDate && state.spDailyDate !== today);
+  if (isNewDay) {
+    // New day: fresh copy from shared dailyWords, reset progress
+    spDailyWords = dailyWords.slice();
+    spDailyPos = 0;
+    spDailyMastered = {};
+    spDailyShown = {};
+    spDailyFirstDone = false;
+    spDailyTarget = dailyTarget;
+    spTodayDone = false;
+    state.spDailyDate = today;
+    state.spDailyWords = spDailyWords.slice();
+    state.spDailyPos = 0;
+    state.spDailyMastered = {};
+    state.spDailyShown = {};
+    state.spDailyFirstDone = false;
+    state.spDailyTarget = spDailyTarget;
+    saveState();
   } else {
-    spDailyWords = (state.spDailyWords || []).slice();
+    // Same day: restore everything from state, NEVER reset mastery
+    spDailyWords = (state.spDailyWords && state.spDailyWords.length > 0) ? state.spDailyWords.slice() : dailyWords.slice();
     spDailyPos = state.spDailyPos || 0;
     spDailyMastered = state.spDailyMastered || {};
     spDailyShown = state.spDailyShown || {};
     spDailyFirstDone = state.spDailyFirstDone || false;
-    spDailyTarget = state.spDailyTarget || spDailyWords.length || 45;
+    spDailyTarget = state.spDailyTarget || dailyTarget || spDailyWords.length || 45;
     spTodayDone = false;
   }
 }
@@ -2786,11 +2800,9 @@ function renderChart() {
 
   // Build points
   var points = '';
-  var divisor = data.length > 1 ? (data.length - 1) : 1;
-  var range = maxPct > minPct ? (maxPct - minPct) : 10;
   for (var i = 0; i < data.length; i++) {
-    var x = padL + (i / divisor) * plotW;
-    var y = padT + plotH - ((data[i].pct - minPct) / range) * plotH;
+    var x = padL + (data.length > 1 ? (i / (data.length - 1)) * plotW : plotW / 2);
+    var y = padT + plotH - ((data[i].pct - minPct) / (maxPct - minPct)) * plotH;
     points += x.toFixed(1) + ',' + y.toFixed(1) + ' ';
   }
 
@@ -2803,15 +2815,13 @@ function renderChart() {
     html += '<text x="' + (padL - 3) + '" y="' + (gy + 3) + '" text-anchor="end" fill="#64748b" font-size="8">' + gv + '%</text>';
   }
 
-  // Line (only if 2+ points)
-  if (data.length >= 2) {
-    html += '<polyline points="' + points + '" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
-  }
+  // Line
+  html += '<polyline points="' + points + '" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
 
   // Dots + date labels
   for (var i = 0; i < data.length; i++) {
-    var x = padL + (i / divisor) * plotW;
-    var y = padT + plotH - ((data[i].pct - minPct) / range) * plotH;
+    var x = padL + (i / (data.length - 1)) * plotW;
+    var y = padT + plotH - ((data[i].pct - minPct) / (maxPct - minPct)) * plotH;
     var isLast = (i === data.length - 1);
     html += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (isLast ? 3 : 2) + '" fill="' + (isLast ? '#34d399' : '#38bdf8') + '"/>';
     // Date label every other or last
@@ -3120,6 +3130,15 @@ function nextSpellWord() {
   }
 
   var wordIdx = spDailyWords[spDailyPos];
+
+  // Skip words already mastered (can happen after state restore)
+  if (spDailyMastered[wordIdx]) {
+    spDailyPos++;
+    saveState();
+    nextSpellWord();
+    return;
+  }
+
   spDailyShown[wordIdx] = true;
   if (!spDailyFirstDone && Object.keys(spDailyShown).length >= spDailyTarget) {
     spDailyFirstDone = true;
@@ -3373,12 +3392,6 @@ function toggleSidebar() {
 }
 
 function toggleSyncPanel() {
-  // If token exists but not connected, connect directly instead of showing panel
-  if (cloudCfg.token && !cloudCfg.snippetId) {
-    document.getElementById('githubToken').value = cloudCfg.token || '';
-    cloudConnect();
-    return;
-  }
   var p = document.getElementById('syncPanel');
   p.style.display = p.style.display === 'none' ? 'block' : 'none';
   if (p.style.display === 'block') {
@@ -3389,19 +3402,15 @@ function toggleSyncPanel() {
 
 function updateSyncStatus() {
   var el = document.getElementById('syncStatus');
-  var lbl = document.getElementById('syncStatusLabel');
   if (cloudCfg.token && cloudCfg.snippetId) {
     el.textContent = '☁️ 已连接';
     el.style.color = '#34d399';
-    if (lbl) lbl.textContent = '云同步 · 点击设置';
   } else if (cloudCfg.token) {
     el.textContent = '☁️ 连接中…';
     el.style.color = '#fbbf24';
-    if (lbl) lbl.textContent = '正在连接Gitee…';
   } else {
     el.textContent = '☁️ 未连接';
     el.style.color = '';
-    if (lbl) lbl.textContent = '云同步 · 点击设置';
   }
 }
 
@@ -3579,34 +3588,6 @@ init = function() {
   }
 };
 
-function resetSpelling() {
-  if (confirm('确定只重置拼写模块吗？\n\n闪卡进度不受影响。\n\n拼写的已答对、错词、每日进度将被清空。')) {
-    state.spKnownWords = {};
-    state.spWrongWords = {};
-    state.spLearnedHistory = {};
-    state.spDailyWords = null;
-    state.spDailyPos = 0;
-    state.spDailyMastered = {};
-    state.spDailyShown = {};
-    state.spDailyFirstDone = false;
-    state.spDailyTarget = 0;
-    state.spDailyStats = [];
-    spDailyWords = null;
-    spDailyPos = 0;
-    spDailyMastered = {};
-    spDailyShown = {};
-    spDailyFirstDone = false;
-    spDailyTarget = 0;
-    spTodayDone = false;
-    spellScore = 0;
-    spellTotal = 0;
-    state.score = 0;
-    state.spTotal = 0;
-    saveState();
-    location.reload();
-  }
-}
-
 function resetAll() {
   if (confirm('⚠️ 确定要清除所有学习进度并重新开始吗？\n\n这将清空：\n· 已学单词记录\n· 错词本\n· 每日学习进度\n· 日历打卡记录\n\n此操作不可恢复！')) {
     localStorage.removeItem(STORAGE_KEY);
@@ -3702,20 +3683,6 @@ function renderStats() {
 }
 
 function init() {
-  // Auto-configure cloud token from URL (for easy mobile setup)
-  var params = new URLSearchParams(window.location.search);
-  var urlToken = params.get('token');
-  if (urlToken && !cloudCfg.token) {
-    cloudCfg.token = urlToken;
-    cloudCfg._checked = false;
-    cloudSaveCfg();
-    // Auto-connect after page loads
-    setTimeout(function() {
-      document.getElementById('githubToken').value = urlToken;
-      cloudConnect();
-    }, 2000);
-  }
-
   state = loadState();
   spellScore = state.score || 0;
   spellTotal = state.spTotal || 0;
@@ -3732,5 +3699,9 @@ function init() {
 
 init();
 </script>
+
+
+
+
 </body>
 </html>
